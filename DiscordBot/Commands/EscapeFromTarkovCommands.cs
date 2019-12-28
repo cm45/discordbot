@@ -35,7 +35,7 @@ namespace DiscordBot.Commands
 
                 foreach (var link in links)
                 {
-                    embedBuilder.Description += $"\n[{link.Title}]({link.URL})";
+                    embedBuilder.Description += "\n" + link.ToClickableLink();
                 }
 
                 await ctx.RespondAsync(embed: embedBuilder);
@@ -55,6 +55,17 @@ namespace DiscordBot.Commands
                 await ctx.RespondAsync("Removed link: " + title);
             }
 
+        }
+
+        [Group("maps")]
+        public class Maps: BaseCommandModule
+        {
+            [GroupCommand]
+            public async Task All(CommandContext ctx)
+            {
+                TarkovMaps.GetMaps();
+                await ctx.RespondAsync("Querying maps...");
+            }
         }
     }
 }

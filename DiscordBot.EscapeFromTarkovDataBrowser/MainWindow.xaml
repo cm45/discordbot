@@ -1,0 +1,27 @@
+﻿<Window x:Class="DiscordBot.EscapeFromTarkovDataBrowser.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DiscordBot.EscapeFromTarkovDataBrowser"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <TextBox x:Name="tboxMapName" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="Map Name" VerticalAlignment="Top" Width="120" Margin="10,10,0,0"/>
+        <TextBox x:Name="tboxUrl" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="Map Url" VerticalAlignment="Top" Width="330" Margin="135,10,0,0"/>
+        
+        <TextBox x:Name="tboxVisualMapName" HorizontalAlignment="Left" Height="23" Margin="10,38,0,0" TextWrapping="Wrap" Text="Visual Map Name" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="tboxVisualMapUrl" HorizontalAlignment="Left" Height="23" Margin="135,38,0,0" TextWrapping="Wrap" Text="Visual Map Url" VerticalAlignment="Top" Width="330"/>
+        <Button x:Name="btnAddVisualMap" Content="Add Visual Map" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top" Width="455" Click="btnAddVisualMap_Click"/>
+
+        <ListView x:Name="lstVisualMaps" HorizontalAlignment="Left" Height="115" VerticalAlignment="Top" Width="455" Margin="10,91,0,0">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <Button x:Name="btnAddMap" Content="Add Map to Database" HorizontalAlignment="Left" VerticalAlignment="Top" Width="455" Margin="10,211,0,0" Click="btnAddMap_Click"/>
+    </Grid>
+</Window>

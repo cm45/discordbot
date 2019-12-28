@@ -7,9 +7,17 @@ namespace DiscordBot.EscapeFromTarkovAPI
 {
     public static class TarkovLinks
     {
+        public class Link
+        {
+            public int Id { get; set; }
+            public string Title { get; set; }
+            public string URL { get; set; }
+            public string ToClickableLink() => $"[{Title}]({URL})";
+        }
+
         public static void AddLink(string title, string url)
         {
-            using (var db = new LiteDatabase(@"EscapeFromTarkov.db"))
+            using (var db = new LiteDatabase(TarkovAPI.DbPath))
             {
                 var collection = db.GetCollection<Link>("links");
 
@@ -26,7 +34,7 @@ namespace DiscordBot.EscapeFromTarkovAPI
 
         public static Link[] GetLinks()
         {
-            using (var db = new LiteDatabase(@"EscapeFromTarkov.db"))
+            using (var db = new LiteDatabase(TarkovAPI.DbPath))
             {
                 var collection = db.GetCollection<Link>("links");
                 var results = collection.FindAll();
@@ -36,20 +44,11 @@ namespace DiscordBot.EscapeFromTarkovAPI
 
         public static void RemoveLink(string title)
         {
-            using (var db = new LiteDatabase(@"EscapeFromTarkov.db"))
+            using (var db = new LiteDatabase(TarkovAPI.DbPath))
             {
                 var collection = db.GetCollection<Link>("links");
                 collection.Delete(Query.EQ("Title", title));
             }
         }
-
-        public class Link
-        {
-            public int Id { get; set; }
-            public string Title { get; set; }
-            public string URL { get; set; }
-        }
-
-
     }
 }

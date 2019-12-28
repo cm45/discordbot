@@ -3,12 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBot.EscapeFromTarkovAPI", "DiscordBot.EscapeFromTarkovAPI\DiscordBot.EscapeFromTarkovAPI.csproj", "{7018E090-D519-4C59-BB28-B6601B6E072F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordBot.EscapeFromTarkovAPI", "DiscordBot.EscapeFromTarkovAPI\DiscordBot.EscapeFromTarkovAPI.csproj", "{7018E090-D519-4C59-BB28-B6601B6E072F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBot", "DiscordBot\DiscordBot.csproj", "{A7521DD4-E8BA-445B-8E6C-09EB8BED6E42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordBot", "DiscordBot\DiscordBot.csproj", "{A7521DD4-E8BA-445B-8E6C-09EB8BED6E42}"
 	ProjectSection(ProjectDependencies) = postProject
 		{7018E090-D519-4C59-BB28-B6601B6E072F} = {7018E090-D519-4C59-BB28-B6601B6E072F}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBot.EscapeFromTarkovDataBrowser", "DiscordBot.EscapeFromTarkovDataBrowser\DiscordBot.EscapeFromTarkovDataBrowser.csproj", "{7232D4E5-9803-4EAA-9728-F9A8628BBF45}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +26,10 @@ Global
 		{A7521DD4-E8BA-445B-8E6C-09EB8BED6E42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7521DD4-E8BA-445B-8E6C-09EB8BED6E42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7521DD4-E8BA-445B-8E6C-09EB8BED6E42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7232D4E5-9803-4EAA-9728-F9A8628BBF45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7232D4E5-9803-4EAA-9728-F9A8628BBF45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7232D4E5-9803-4EAA-9728-F9A8628BBF45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7232D4E5-9803-4EAA-9728-F9A8628BBF45}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
