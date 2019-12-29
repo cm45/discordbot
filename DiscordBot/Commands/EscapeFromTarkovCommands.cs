@@ -63,8 +63,33 @@ namespace DiscordBot.Commands
             [GroupCommand]
             public async Task All(CommandContext ctx)
             {
-                TarkovMaps.GetMaps();
-                await ctx.RespondAsync("Querying maps...");
+                var maps = TarkovMaps.GetMaps();
+
+                if (maps.Length <= 0)
+                {
+                    await ctx.RespondAsync("No maps found!");
+                    return;
+                }
+
+                var embedBuilder = new DiscordEmbedBuilder()
+                {
+                    Title = "EFT Maps"
+                };
+
+
+                foreach (var map in maps)
+                {
+                    var description = $"[Wiki]({map.URL})";
+
+                    foreach (var visualMaps in map.VisualMaps)
+                    {
+                        description += $"\n{visualMaps.ToClickableLink()}";
+                    }
+
+                    embedBuilder.AddField(map.Name, description, true);
+                }
+
+                await ctx.RespondAsync(embed: embedBuilder);
             }
         }
     }
