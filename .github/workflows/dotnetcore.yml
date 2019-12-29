@@ -14,6 +14,6 @@ jobs:
       with:
         dotnet-version: 3.0.100
     - name: Add DSharp+ nuget source
-      run: nuget sources Add -name "DSharp+" -Source "https://nuget.emzi0767.com/api/v3/index.json"
+      run: dotnet nuget sources Add -name "DSharp+" -Source "https://nuget.emzi0767.com/api/v3/index.json"
     - name: Build with dotnet
       run: dotnet build --configuration Release
