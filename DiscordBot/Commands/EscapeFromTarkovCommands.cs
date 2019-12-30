@@ -12,11 +12,18 @@ namespace DiscordBot.Commands
     [Group("eft")]
     public class EscapeFromTarkovCommands : BaseCommandModule
     {
+        [Command("info")]
+        public async Task Info(CommandContext ctx)
+        {
+            await Links.All(ctx);
+            await Maps.All(ctx);
+        }
+
         [Group("links")]
         public class Links : BaseCommandModule
         {
             [GroupCommand]
-            public async Task All(CommandContext ctx)
+            public static async Task All(CommandContext ctx)
             {
                 var links = TarkovLinks.GetLinks();
 
@@ -61,7 +68,7 @@ namespace DiscordBot.Commands
         public class Maps: BaseCommandModule
         {
             [GroupCommand]
-            public async Task All(CommandContext ctx)
+            public static async Task All(CommandContext ctx)
             {
                 var maps = TarkovMaps.GetMaps();
 

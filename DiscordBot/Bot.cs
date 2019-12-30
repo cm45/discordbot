@@ -43,6 +43,7 @@ namespace DiscordBot
             };
             Commands = Client.UseCommandsNext(commandsConfig);
             Commands.RegisterCommands<Commands.EscapeFromTarkovCommands>();
+            Commands.RegisterCommands<Commands.UtilityCommands>();
 
             await Client.ConnectAsync();
 
