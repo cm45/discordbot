@@ -341,3 +341,4 @@ healthchecksdb
 /DiscordBot/ffmpeg.exe
 /DiscordBot/libopus.dll
 /DiscordBot/libsodium.dll
+/DiscordBot/config.json

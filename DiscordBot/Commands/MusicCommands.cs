@@ -12,8 +12,8 @@ namespace DiscordBot.Commands
     [Group("music")]
     public class MusicCommands: BaseCommandModule
     {
-        [Command("join")]
-        public async Task Join(CommandContext ctx, DiscordChannel channel = null)
+        [Command("connect"), Aliases("join", "summon")]
+        public async Task Connect(CommandContext ctx, DiscordChannel channel = null)
         {
             if (ctx.Message.Channel.IsPrivate)
             {
@@ -39,6 +39,30 @@ namespace DiscordBot.Commands
 
             voiceConnection = await voiceClient.ConnectAsync(channel);
             await ctx.RespondAsync($"Joining \"{ctx.Member?.DisplayName}\" into channel \"{voiceConnection.Channel.Name}\"");
+        }
+
+        [Command("disconnect"), Aliases("leave", "exit")]
+        public async Task Disconnect(CommandContext ctx)
+        {
+            if (ctx.Message.Channel.IsPrivate)
+            {
+                await ctx.RespondAsync("Direct Messages are not supported for this command!");
+                return;
+            }
+
+            var voiceClient = ctx.Client.GetVoiceNext();
+            var voiceConnection = voiceClient.GetConnection(ctx.Guild);
+
+            if (voiceConnection != null)
+            {
+                voiceConnection.Disconnect();
+                await ctx.RespondAsync("Disconnecting!");
+                return;
+            }
+            else
+            {
+                await ctx.RespondAsync("Not connected!");
+            }
         }
     }
 }
