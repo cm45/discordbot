@@ -1,5 +1,6 @@
 ﻿using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.VoiceNext;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ namespace DiscordBot
     {
         public DiscordClient Client { get; private set; }
         public CommandsNextExtension Commands { get; private set; }
+        public VoiceNextExtension Voice { get; private set; }
 
         public async Task RunAsync()
         {
@@ -44,9 +46,11 @@ namespace DiscordBot
             Commands = Client.UseCommandsNext(commandsConfig);
             Commands.RegisterCommands<Commands.EscapeFromTarkovCommands>();
             Commands.RegisterCommands<Commands.UtilityCommands>();
+            Commands.RegisterCommands<Commands.MusicCommands>();
+
+            Voice = Client.UseVoiceNext();
 
             await Client.ConnectAsync();
-
             await Task.Delay(-1);
         }
 
