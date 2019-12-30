@@ -54,6 +54,11 @@ namespace DiscordBot
             await Task.Delay(-1);
         }
 
+        public async Task ExitAsync()
+        {
+            await Client.DisconnectAsync();
+        }
+
         private Task OnClientReady(DSharpPlus.EventArgs.ReadyEventArgs e)
         {
             return Task.CompletedTask;
