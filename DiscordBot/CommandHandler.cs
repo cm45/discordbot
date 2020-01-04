@@ -33,10 +33,9 @@ namespace DiscordBot
         {
             Console.WriteLine(msg.Content);
 
-            var userMessage = msg as SocketUserMessage;
-            if (userMessage is null)
+            if (!(msg is SocketUserMessage userMessage))
                 return;
-            
+
             var argPos = 0;
 
             // Check prefix

@@ -38,9 +38,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Modules\" />
-    <Folder Include="Services\" />
-  </ItemGroup>
-
 </Project>

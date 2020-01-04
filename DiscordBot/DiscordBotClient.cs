@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordBot.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -14,21 +15,31 @@ namespace DiscordBot
         public CommandService CommandService { get; private set; }
         public IServiceProvider Services { get; private set; }
 
+        // Music
+        public LavaNode LavaNode { get; private set; }
+        public LavaConfig LavaConfig { get; private set; }
+        public MusicService MusicService { get; private set; }
 
 
-        public DiscordBotClient(DiscordSocketClient client = null, CommandService commandService = null)
+        public DiscordBotClient(DiscordSocketClient client = null, CommandService commandService = null, LavaNode lavaNode = null)
         {
             Client = client ?? new DiscordSocketClient(new DiscordSocketConfig
             {
                 AlwaysDownloadUsers = true,
                 MessageCacheSize = 50,
-                LogLevel = Discord.LogSeverity.Debug
+                LogLevel = LogSeverity.Debug
             });
 
             CommandService = commandService ?? new CommandService(new CommandServiceConfig
             {
-                LogLevel = Discord.LogSeverity.Verbose
+                LogLevel = LogSeverity.Verbose
             });
+
+            // Music
+            LavaConfig = GetLavaConfig().GetAwaiter().GetResult();
+            LavaNode = lavaNode ?? new LavaNode(Client, LavaConfig);
+            MusicService = new MusicService(Client, LavaConfig, LavaNode);
+            MusicService.InitializeAsync().GetAwaiter().GetResult();
         }
 
         public async Task InitializeAsync()
@@ -41,6 +52,7 @@ namespace DiscordBot
 
             // Event-handling
             Client.Log += Client_Log;
+            Client.Ready += OnClientReadyAsync;
             
             Services = SetupServices();
 
@@ -50,12 +62,32 @@ namespace DiscordBot
             await Task.Delay(-1);
         }
 
+        private async Task OnClientReadyAsync()
+        {
+            await LavaNode.ConnectAsync();
+        }
+
+        // TODO: Get From config file
+        private async Task<LavaConfig> GetLavaConfig()
+        {
+            return new LavaConfig
+            {
+                Hostname = "localhost",
+                Port = 2333,
+                Authorization = "youshallnotpass",
+                LogSeverity = LogSeverity.Debug
+            };
+        }
+
+        // TODO: Rename
         private IServiceProvider SetupServices()
         {
             return new ServiceCollection()
                  .AddSingleton(Client)
                  .AddSingleton(CommandService)
-                 .AddSingleton<LavaSocket>()
+                 .AddSingleton(LavaConfig)
+                 .AddSingleton(LavaNode)
+                 .AddSingleton(MusicService)
                  .BuildServiceProvider();
         }
 
