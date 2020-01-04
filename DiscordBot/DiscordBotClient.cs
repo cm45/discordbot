@@ -44,7 +44,7 @@ namespace DiscordBot
 
         public async Task InitializeAsync()
         {
-            var config = await Config.GetConfigAsync();
+            var config = await Config.LoadConfigAsync();
 
             // Connect
             await Client.LoginAsync(TokenType.Bot, config.Token);

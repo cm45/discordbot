@@ -75,6 +75,12 @@ namespace DiscordBot.Modules
             await ReplyAsync($"Set Volume from {oldVolume} to {value} (Check: {MusicService.GetVolume(Context.Guild)})");
         }
 
+        [Command("skip"), Alias("next", "n")]
+        public async Task Skip()
+        {
+            await MusicService.Player.SkipAsync();
+        }
+
         [Group("queue"), Alias("q")]
         public class Queue : ModuleBase<SocketCommandContext>
         {

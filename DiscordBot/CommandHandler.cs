@@ -39,7 +39,7 @@ namespace DiscordBot
             var argPos = 0;
 
             // Check prefix
-            var prefixString = (await Config.GetConfigAsync()).Prefix;
+            var prefixString = (await Config.LoadConfigAsync()).Prefix;
 
             var hasPrefix = userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos) || userMessage.HasStringPrefix(prefixString, ref argPos);
                         

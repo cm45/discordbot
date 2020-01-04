@@ -15,8 +15,8 @@ namespace DiscordBot.Services
         public DiscordSocketClient Client { get; private set; }
         public LavaConfig LavaConfig { get; private set; }
         public LavaNode LavaNode { get; private set; }
+        public LavaPlayer Player { get; private set; }
 
-        // TODO: Player Property
 
         public MusicService(DiscordSocketClient client, LavaConfig lavaConfig, LavaNode lavaNode)
         {
@@ -66,7 +66,8 @@ namespace DiscordBot.Services
         }
         public async Task JoinAsync(IVoiceChannel voiceChannel, ITextChannel textChannel)
         {
-            await LavaNode.JoinAsync(voiceChannel, textChannel);
+            Player = await LavaNode.JoinAsync(voiceChannel, textChannel);
+            await Player.UpdateVolumeAsync(Config.ConfigCache.Volume);
 
             if (!string.IsNullOrWhiteSpace(Config.ConfigCache.OnJoin))
                 await PlayAsync(Config.ConfigCache.OnJoin, voiceChannel.Guild as SocketGuild, true);
@@ -76,7 +77,12 @@ namespace DiscordBot.Services
         public async Task UpdateVolumeAsync(IGuild guild, ushort value)
         {
             if (LavaNode.TryGetPlayer(guild, out var player))
+            {
                 await player.UpdateVolumeAsync(value);
+                var config = Config.ConfigCache;
+                config.Volume = value;
+                await Config.SaveConfigAsync(config);
+            }
         }
 
         public int GetVolume(IGuild guild)
@@ -155,8 +161,6 @@ namespace DiscordBot.Services
             {
                 return $"Couldn't find any results!";
             }
-
-            return "";
         }
 
         public DefaultQueue<Victoria.Interfaces.IQueueable> GetQueue(IGuild guild)
