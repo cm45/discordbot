@@ -6,12 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00643" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00643" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00643" />
-    <PackageReference Include="DSharpPlus.Lavalink" Version="4.0.0-nightly-00643" />
-    <PackageReference Include="DSharpPlus.VoiceNext" Version="4.0.0-nightly-00643" />
+    <PackageReference Include="Discord.Net" Version="2.1.1" />
+    <PackageReference Include="Discord.Net.Commands" Version="2.1.1" />
+    <PackageReference Include="Discord.Net.Core" Version="2.1.1" />
+    <PackageReference Include="Discord.Net.Rest" Version="2.1.1" />
+    <PackageReference Include="Discord.Net.Webhook" Version="2.1.1" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="2.1.1" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
+    <PackageReference Include="Victoria" Version="5.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -20,6 +22,9 @@
 
   <ItemGroup>
     <None Update="config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ffmpeg.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="libsodium.dll">
@@ -31,6 +36,11 @@
     <None Update="sodium.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Modules\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>
