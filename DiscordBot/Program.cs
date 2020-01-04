@@ -7,8 +7,10 @@ namespace DiscordBot
     {
         static void Main(string[] args)
         {
+            // TODO: Implement sharding
+
             var bot = new Bot();
-            AppDomain.CurrentDomain.ProcessExit += (Object o, EventArgs args) => bot.ExitAsync().GetAwaiter().GetResult();
+            AppDomain.CurrentDomain.ProcessExit += (object o, EventArgs args) => bot.ExitAsync().GetAwaiter().GetResult(); // TODO: FIX
             bot.RunAsync().GetAwaiter().GetResult();
         }
     }

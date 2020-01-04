@@ -342,3 +342,5 @@ healthchecksdb
 /DiscordBot/libopus.dll
 /DiscordBot/libsodium.dll
 /DiscordBot/config.json
+/DiscordBot/sodium.dll
+/DiscordBot/opus.dll

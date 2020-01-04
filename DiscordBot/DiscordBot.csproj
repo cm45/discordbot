@@ -9,6 +9,7 @@
     <PackageReference Include="DSharpPlus" Version="4.0.0-nightly-00643" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-nightly-00643" />
     <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-nightly-00643" />
+    <PackageReference Include="DSharpPlus.Lavalink" Version="4.0.0-nightly-00643" />
     <PackageReference Include="DSharpPlus.VoiceNext" Version="4.0.0-nightly-00643" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
   </ItemGroup>
@@ -19,6 +20,15 @@
 
   <ItemGroup>
     <None Update="config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="libsodium.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="opus.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="sodium.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
