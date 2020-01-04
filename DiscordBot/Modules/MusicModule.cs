@@ -21,16 +21,27 @@ namespace DiscordBot.Modules
         private IVoiceChannel VoiceChannel => (Context.User as IGuildUser).VoiceChannel;
         private LavaNode LavaNode => MusicService.LavaNode;
 
-        [Command]
+        [Command, Alias("info", "current", "track", "song", "information", "playing")]
         public async Task Info()
         {
             var track = MusicService.GetCurrentTrack(Context.Guild);
             var description = track != null ? $"Currently playing: {track.Title}" : "Idle...";
 
-            var embed = new EmbedBuilder()
+            var embedBuilder = new EmbedBuilder()
                 .WithTitle("Musicbot - Info")
-                .WithDescription(description)
-                .Build();
+                .WithDescription(description);
+
+            if (LavaNode.TryGetPlayer(Context.Guild, out var player))
+            {
+                embedBuilder.AddField("Channel", player.VoiceChannel);
+                embedBuilder.AddField("Volume", player.Volume);
+                if (player.Track != null)
+                {
+                    embedBuilder.AddField("Time", $"WIP/{player.Track.Duration}");
+                }
+            }
+
+            var embed = embedBuilder.Build();
 
             await ReplyAsync(embed: embed);
         }
@@ -52,24 +63,8 @@ namespace DiscordBot.Modules
         [Command("play")]
         public async Task PlayAsync([Remainder] string query)
         {
-            var search = await LavaNode.SearchAsync(query);
-            var track = search.Tracks.First();
-
-            LavaPlayer player = null;
-            if (!LavaNode.TryGetPlayer(Context.Guild, out player))
-                player = await LavaNode.JoinAsync(VoiceChannel);
-            if (player is null) return;
-
-            if (player.PlayerState == PlayerState.Playing)
-            {
-                player.Queue.Enqueue(track);
-                await ReplyAsync($"Enqueued {track.Title}.");
-            }
-            else
-            {
-                await player.PlayAsync(track);
-                await ReplyAsync($"Playing {track.Title}.");
-            }
+            var result = await MusicService.PlayAsync(query, Context.Guild);
+            await ReplyAsync(result);
         }
     }
 }

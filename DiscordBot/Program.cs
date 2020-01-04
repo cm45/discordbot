@@ -8,9 +8,8 @@ namespace DiscordBot
         static async Task Main(string[] args)
         {
             var bot = new DiscordBotClient();
+            AppDomain.CurrentDomain.ProcessExit += (object sender, EventArgs e) => bot.TerminateAsync().GetAwaiter().GetResult();
             await bot.InitializeAsync();
-
-            AppDomain.CurrentDomain.ProcessExit += (object sender, EventArgs e) => bot.DisconnectAsync().GetAwaiter().GetResult();
         }
     }
 }

@@ -36,7 +36,7 @@ namespace DiscordBot
             });
 
             // Music
-            LavaConfig = GetLavaConfig().GetAwaiter().GetResult();
+            LavaConfig = Config.ConfigCache.LavaConfig;
             LavaNode = lavaNode ?? new LavaNode(Client, LavaConfig);
             MusicService = new MusicService(Client, LavaConfig, LavaNode);
             MusicService.InitializeAsync().GetAwaiter().GetResult();
@@ -53,7 +53,7 @@ namespace DiscordBot
             // Event-handling
             Client.Log += Client_Log;
             Client.Ready += OnClientReadyAsync;
-            
+
             Services = SetupServices();
 
             var commandHandler = new CommandHandler(Client, CommandService, Services);
@@ -65,18 +65,6 @@ namespace DiscordBot
         private async Task OnClientReadyAsync()
         {
             await LavaNode.ConnectAsync();
-        }
-
-        // TODO: Get From config file
-        private async Task<LavaConfig> GetLavaConfig()
-        {
-            return new LavaConfig
-            {
-                Hostname = "localhost",
-                Port = 2333,
-                Authorization = "youshallnotpass",
-                LogSeverity = LogSeverity.Debug
-            };
         }
 
         // TODO: Rename
@@ -97,10 +85,6 @@ namespace DiscordBot
             return Task.CompletedTask;
         }
 
-        public Task DisconnectAsync()
-        {
-            // TODO: DC Client
-            return Task.CompletedTask;
-        }
+        public async Task TerminateAsync() => await Client.StopAsync();
     }
 }
