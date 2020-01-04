@@ -47,9 +47,9 @@ namespace DiscordBot.Modules
         }
 
         [Command("join"), Alias("summon", "connect")]
-        public async Task Join()
+        public async Task Join(IVoiceChannel voiceChannel = null)
         {
-            await MusicService.JoinAsync(VoiceChannel, Context.Channel as ITextChannel);
+            await MusicService.JoinAsync(voiceChannel ?? VoiceChannel, Context.Channel as ITextChannel);
             await ReplyAsync($"Joined {VoiceChannel} channel!");
         }
 
@@ -65,6 +65,77 @@ namespace DiscordBot.Modules
         {
             var result = await MusicService.PlayAsync(query, Context.Guild);
             await ReplyAsync(result);
+        }
+
+        [Command("volume"), Alias("v", "vol")]
+        public async Task Volume(ushort value)
+        {
+            int oldVolume = MusicService.GetVolume(Context.Guild);
+            await MusicService.UpdateVolumeAsync(Context.Guild, value);
+            await ReplyAsync($"Set Volume from {oldVolume} to {value} (Check: {MusicService.GetVolume(Context.Guild)})");
+        }
+
+        [Group("queue"), Alias("q")]
+        public class Queue : ModuleBase<SocketCommandContext>
+        {
+            public MusicService MusicService { get; set; }
+
+            [Command("enqueue"), Alias("add", "a", "+")]
+            public async Task Enqueue([Remainder] string query)
+            {
+                await ReplyAsync("WIP (use '!music play' instead)");
+                var result = await MusicService.PlayAsync(query, Context.Guild);
+                await ReplyAsync(result);
+            }
+
+            [Command("remove"), Alias("delete", "r", "d", "-")]
+            public async Task Remove(uint queueId)
+            {
+                await ReplyAsync(await MusicService.RemoveItemFromQueue(Context.Guild, queueId));
+            }
+
+            [Command("shuffle"), Alias("randomize", "rng")]
+            public async Task ShuffleQueue()
+            {
+                MusicService.Shuffle(Context.Guild);
+                await ReplyAsync("Shuffled Queue!");
+            }
+
+            [Command, Alias("show", "list", "all")]
+            public async Task ShowQueue()
+            {
+                var currentTrack = MusicService.GetCurrentTrack(Context.Guild);
+
+                var embedBuilder = new EmbedBuilder
+                {
+                    Title = "Musicbot - Queue",
+                    Description = $"Currently playing {currentTrack?.Title}\n"
+                };
+
+                var queue = MusicService.GetQueue(Context.Guild);
+
+                if (queue.Items != null)
+                {
+                    int tracksPerPage = 10;
+                    int index = 0;
+                    foreach (var item in queue.Items)
+                    {
+                        var track = (LavaTrack)item;
+                        embedBuilder.Description += $"\n#{++index} - {track.Title} - [{track.Duration}]";
+                        if (index >= tracksPerPage)
+                        {
+                            embedBuilder.Description += $"\nAnd {queue.Count - index + 1} more...";
+                            break;
+                        }
+                    }
+                    await ReplyAsync(embed: embedBuilder.Build());
+                }
+                else
+                {
+                    embedBuilder.Description += "queue.Items is null!";
+                    await ReplyAsync(embed: embedBuilder.Build());
+                }
+            }
         }
     }
 }
