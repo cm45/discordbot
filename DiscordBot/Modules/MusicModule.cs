@@ -81,6 +81,19 @@ namespace DiscordBot.Modules
             await MusicService.Player.SkipAsync();
         }
 
+        [Command("shuffle"), Alias("randomize", "rng")]
+        public async Task ShuffleQueue()
+        {
+            MusicService.Shuffle(Context.Guild);
+            await ReplyAsync("Shuffled Queue!");
+        }
+
+        [Command("pause"), Alias("p")] public async Task Pause() => await ReplyAsync(await MusicService.PauseAsync(Context.Guild));
+        [Command("resume"), Alias("r")] public async Task Resume() => await ReplyAsync(await MusicService.ResumeAsync(Context.Guild));
+        [Command("stop"), Alias("s")] public async Task Stop() => await ReplyAsync(await MusicService.StopAsync(Context.Guild));
+
+
+
         [Group("queue"), Alias("q")]
         public class Queue : ModuleBase<SocketCommandContext>
         {

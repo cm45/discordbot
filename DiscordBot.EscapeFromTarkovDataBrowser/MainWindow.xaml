@@ -9,7 +9,7 @@
     <Grid>
         <TextBox x:Name="tboxMapName" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="Map Name" VerticalAlignment="Top" Width="120" Margin="10,10,0,0"/>
         <TextBox x:Name="tboxUrl" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="Map Url" VerticalAlignment="Top" Width="330" Margin="135,10,0,0"/>
-        
+
         <TextBox x:Name="tboxVisualMapName" HorizontalAlignment="Left" Height="23" Margin="10,38,0,0" TextWrapping="Wrap" Text="Visual Map Name" VerticalAlignment="Top" Width="120"/>
         <TextBox x:Name="tboxVisualMapUrl" HorizontalAlignment="Left" Height="23" Margin="135,38,0,0" TextWrapping="Wrap" Text="Visual Map Url" VerticalAlignment="Top" Width="330"/>
         <Button x:Name="btnAddVisualMap" Content="Add Visual Map" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top" Width="455" Click="btnAddVisualMap_Click"/>
@@ -23,5 +23,6 @@
         </ListView>
 
         <Button x:Name="btnAddMap" Content="Add Map to Database" HorizontalAlignment="Left" VerticalAlignment="Top" Width="455" Margin="10,211,0,0" Click="btnAddMap_Click"/>
+        <Button x:Name="btnAddDummyData" Content="Add dummy Data" HorizontalAlignment="Left" Margin="10,236,0,0" VerticalAlignment="Top" Width="455" Click="btnAddDummyData_Click"/>
     </Grid>
 </Window>

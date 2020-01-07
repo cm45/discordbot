@@ -93,9 +93,41 @@ namespace DiscordBot.Services
             return -1;
         }
 
+
+
         private Task Client_Ready()
         {
             return Task.CompletedTask;
+        }
+
+        public async Task<string> ResumeAsync(SocketGuild guild)
+        {
+            if (LavaNode.TryGetPlayer(guild, out var player))
+            {
+                await player.ResumeAsync();
+                return $"Resumed playback of '{player.Track.Title}'!";
+            }
+            return "No player detected!";
+        }
+
+        public async Task<string> PauseAsync(SocketGuild guild)
+        {
+            if (LavaNode.TryGetPlayer(guild, out var player))
+            {
+                await player.PauseAsync();
+                return $"Paused playback of '{player.Track.Title}'!";
+            }
+            return "No player detected!";
+        }
+
+        public async Task<string> StopAsync(SocketGuild guild)
+        {
+            if (LavaNode.TryGetPlayer(guild, out var player))
+            {
+                await player.StopAsync();
+                return $"Stopped playback of '{player.Track.Title}'!";
+            }
+            return "No player detected!";
         }
 
         public Task<string> RemoveItemFromQueue(IGuild guild, uint queueId)

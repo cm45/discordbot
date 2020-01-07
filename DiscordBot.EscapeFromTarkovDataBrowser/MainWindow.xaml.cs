@@ -41,5 +41,10 @@ namespace DiscordBot.EscapeFromTarkovDataBrowser
             visualMaps = new List<VisualMap>();
             lstVisualMaps.ItemsSource = visualMaps;
         }
+
+        private void btnAddDummyData_Click(object sender, RoutedEventArgs e)
+        {
+            TarkovAPI.AddDummyData();
+        }
     }
 }
