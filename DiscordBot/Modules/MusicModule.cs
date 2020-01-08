@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using DiscordBot.Services;
+using DiscordBot.Services.Music;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,20 +19,22 @@ namespace DiscordBot.Modules
         public MusicService MusicService { get; set; }
 
         private IVoiceChannel VoiceChannel => (Context.User as IGuildUser).VoiceChannel;
-        private LavaNode LavaNode => MusicService.LavaNode;
+
 
         [Command, Alias("info", "current", "track", "song", "information", "playing")]
         public async Task Info()
         {
-            var track = MusicService.GetCurrentTrack(Context.Guild);
+            var track = await MusicService.GetCurrentTrack();
             var description = track != null ? $"Currently playing: {track.Title}" : "Idle...";
 
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("Musicbot - Info")
                 .WithDescription(description);
 
-            if (LavaNode.TryGetPlayer(Context.Guild, out var player))
+            if (MusicService.Player != null)
             {
+                var player = MusicService.Player;
+
                 embedBuilder.AddField("Channel", player.VoiceChannel);
                 embedBuilder.AddField("Volume", player.Volume);
                 if (player.Track != null)
@@ -46,115 +48,62 @@ namespace DiscordBot.Modules
             await ReplyAsync(embed: embed);
         }
 
+        #region Connection
         [Command("join"), Alias("summon", "connect")]
         public async Task Join(IVoiceChannel voiceChannel = null)
         {
             await MusicService.JoinAsync(voiceChannel ?? VoiceChannel, Context.Channel as ITextChannel);
-            await ReplyAsync($"Joined {VoiceChannel} channel!");
+            await ReplyAsync($"Joined {voiceChannel} channel!");
         }
 
         [Command("leave"), Alias("disconnect")]
         public async Task Leave()
         {
+            var voiceChannelString = MusicService.Player.VoiceChannel.ToString();
             await MusicService.LeaveAsync(VoiceChannel);
-            await ReplyAsync("Bye!");
+            await ReplyAsync($"Left {voiceChannelString}");
         }
+        #endregion
 
+        #region Playback
         [Command("play")]
-        public async Task PlayAsync([Remainder] string query)
+        public async Task Play([Remainder] string query)
         {
-            var result = await MusicService.PlayAsync(query, Context.Guild);
-            await ReplyAsync(result);
+            if (MusicService.Player == null)
+                await MusicService.JoinAsync(VoiceChannel, Context.Channel as ITextChannel);
+
+            var (queueEmbed, nowPlayingEmbed) = await MusicService.PlayAsync(query, Context.Guild);
+            if (queueEmbed != null) await ReplyAsync(embed: queueEmbed);
+            if (nowPlayingEmbed != null) await ReplyAsync(embed: nowPlayingEmbed);
+        }
+        [Command("forceplay")]
+        public async Task ForcePlay([Remainder] string query)
+        {
+            if (MusicService.Player == null)
+                await MusicService.JoinAsync(VoiceChannel, Context.Channel as ITextChannel);
+
+            var (queueEmbed, nowPlayingEmbed) = await MusicService.PlayAsync(query, Context.Guild, true);
+            if (queueEmbed != null) await ReplyAsync(embed: queueEmbed);
+            if (nowPlayingEmbed != null) await ReplyAsync(embed: nowPlayingEmbed);
         }
 
-        [Command("volume"), Alias("v", "vol")]
-        public async Task Volume(ushort value)
-        {
-            int oldVolume = MusicService.GetVolume(Context.Guild);
-            await MusicService.UpdateVolumeAsync(Context.Guild, value);
-            await ReplyAsync($"Set Volume from {oldVolume} to {value} (Check: {MusicService.GetVolume(Context.Guild)})");
-        }
-
-        [Command("skip"), Alias("next", "n")]
-        public async Task Skip()
-        {
-            await MusicService.Player.SkipAsync();
-        }
-
-        [Command("shuffle"), Alias("randomize", "rng")]
-        public async Task ShuffleQueue()
-        {
-            MusicService.Shuffle(Context.Guild);
-            await ReplyAsync("Shuffled Queue!");
-        }
-
-        [Command("pause"), Alias("p")] public async Task Pause() => await ReplyAsync(await MusicService.PauseAsync(Context.Guild));
-        [Command("resume"), Alias("r")] public async Task Resume() => await ReplyAsync(await MusicService.ResumeAsync(Context.Guild));
-        [Command("stop"), Alias("s")] public async Task Stop() => await ReplyAsync(await MusicService.StopAsync(Context.Guild));
+        [Command("resume"), Alias("r")] public async Task Resume() => await ReplyAsync(embed: await MusicService.ResumeAsync(Context.Guild));
+        [Command("pause")] public async Task Pause() => await ReplyAsync(embed: await MusicService.PauseAsync(Context.Guild));
+        [Command("stop"), Alias("s")] public async Task Stop() => await ReplyAsync(embed: await MusicService.StopAsync(Context.Guild));
 
 
+        #endregion
 
-        [Group("queue"), Alias("q")]
-        public class Queue : ModuleBase<SocketCommandContext>
-        {
-            public MusicService MusicService { get; set; }
+        #region Volume control
+        [Command("volume"), Alias("v", "vol")] public async Task Volume(ushort value) => await ReplyAsync(embed: await MusicService.SetVolumeAsync(value));
+        [Command("volume"), Alias("v", "vol")] public async Task Volume() => await ReplyAsync(embed: await MusicService.GetVolumeAsEmbedMessage());
+        #endregion
 
-            [Command("enqueue"), Alias("add", "a", "+")]
-            public async Task Enqueue([Remainder] string query)
-            {
-                await ReplyAsync("WIP (use '!music play' instead)");
-                var result = await MusicService.PlayAsync(query, Context.Guild);
-                await ReplyAsync(result);
-            }
-
-            [Command("remove"), Alias("delete", "r", "d", "-")]
-            public async Task Remove(uint queueId)
-            {
-                await ReplyAsync(await MusicService.RemoveItemFromQueue(Context.Guild, queueId));
-            }
-
-            [Command("shuffle"), Alias("randomize", "rng")]
-            public async Task ShuffleQueue()
-            {
-                MusicService.Shuffle(Context.Guild);
-                await ReplyAsync("Shuffled Queue!");
-            }
-
-            [Command, Alias("show", "list", "all")]
-            public async Task ShowQueue()
-            {
-                var currentTrack = MusicService.GetCurrentTrack(Context.Guild);
-
-                var embedBuilder = new EmbedBuilder
-                {
-                    Title = "Musicbot - Queue",
-                    Description = $"Currently playing {currentTrack?.Title}\n"
-                };
-
-                var queue = MusicService.GetQueue(Context.Guild);
-
-                if (queue.Items != null)
-                {
-                    int tracksPerPage = 10;
-                    int index = 0;
-                    foreach (var item in queue.Items)
-                    {
-                        var track = (LavaTrack)item;
-                        embedBuilder.Description += $"\n#{++index} - {track.Title} - [{track.Duration}]";
-                        if (index >= tracksPerPage)
-                        {
-                            embedBuilder.Description += $"\nAnd {queue.Count - index + 1} more...";
-                            break;
-                        }
-                    }
-                    await ReplyAsync(embed: embedBuilder.Build());
-                }
-                else
-                {
-                    embedBuilder.Description += "queue.Items is null!";
-                    await ReplyAsync(embed: embedBuilder.Build());
-                }
-            }
-        }
+        #region Queue
+        [Command("queue"), Alias("q", "show", "list", "all")] public async Task ShowQueue() => await ReplyAsync(embed: await MusicService.GetQueueMessageEmbedAsync());
+        [Command("skip"), Alias("next", "n")] public async Task Skip() => await ReplyAsync(embed: await MusicService.SkipAsync());
+        [Command("shuffle"), Alias("randomize", "rng")] public async Task ShuffleQueue() => await ReplyAsync(embed: await MusicService.Shuffle());
+        [Command("remove"), Alias("delete", "r", "d", "-")] public async Task Remove(uint queueId) => await ReplyAsync(embed: await MusicService.RemoveItemFromQueue(queueId));
+        #endregion
     }
 }

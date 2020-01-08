@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using DiscordBot.Services;
+using DiscordBot.Services.Music;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;

@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using DiscordBot.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +9,12 @@ using System.Threading.Tasks;
 using Victoria;
 using Victoria.Enums;
 
-namespace DiscordBot.Services
+namespace DiscordBot.Services.Music
 {
     public class MusicService
     {
+        public static Embed NoPlayerEmbed = CustomEmbedBuilder.BuildErrorEmbed("No player found!");
+
         public DiscordSocketClient Client { get; private set; }
         public LavaConfig LavaConfig { get; private set; }
         public LavaNode LavaNode { get; private set; }
@@ -24,7 +27,6 @@ namespace DiscordBot.Services
             LavaConfig = lavaConfig;
             LavaNode = lavaNode;
         }
-
         public Task InitializeAsync()
         {
             Client.Ready += Client_Ready;
@@ -32,10 +34,28 @@ namespace DiscordBot.Services
 
             // TODO: Add lavasocketclient events
             LavaNode.OnTrackEnded += LavaNode_OnTrackEnded;
+            LavaNode.OnPlayerUpdated += LavaNode_OnPlayerUpdated;
 
             return Task.CompletedTask;
         }
 
+        private async Task LavaNode_OnPlayerUpdated(Victoria.EventArgs.PlayerUpdateEventArgs arg)
+        {
+            if (Player == null || Player.Track == null)
+                return;
+
+            await Client.SetGameAsync(Player.Track.Title, Player.Track.Url);
+        }
+        #region Event-Methods
+        private Task Client_UserVoiceStateUpdated(SocketUser user, SocketVoiceState oldVoiceState, SocketVoiceState newVoiceState)
+        {
+            Console.WriteLine($"{user} moved from {oldVoiceState.VoiceChannel} to {newVoiceState.VoiceChannel}");
+            return Task.CompletedTask;
+        }
+        private Task Client_Ready()
+        {
+            return Task.CompletedTask;
+        }
         private async Task LavaNode_OnTrackEnded(Victoria.EventArgs.TrackEndedEventArgs args)
         {
             if (!args.Reason.ShouldPlayNext())
@@ -48,22 +68,10 @@ namespace DiscordBot.Services
             }
 
             await args.Player.PlayAsync((LavaTrack)track);
-            await args.Player.TextChannel.SendMessageAsync($"Now playing: {((LavaTrack)track).Title}");
         }
+        #endregion
 
-        private Task Client_UserVoiceStateUpdated(SocketUser user, SocketVoiceState oldVoiceState, SocketVoiceState newVoiceState)
-        {
-            Console.WriteLine($"{user} moved from {oldVoiceState.VoiceChannel} to {newVoiceState.VoiceChannel}");
-            return Task.CompletedTask;
-        }
-
-        public LavaTrack GetCurrentTrack(IGuild guild)
-        {
-            if (LavaNode.TryGetPlayer(guild, out LavaPlayer player))
-                return player.Track;
-
-            return null;
-        }
+        #region Connection-handling commands
         public async Task JoinAsync(IVoiceChannel voiceChannel, ITextChannel textChannel)
         {
             Player = await LavaNode.JoinAsync(voiceChannel, textChannel);
@@ -72,135 +80,218 @@ namespace DiscordBot.Services
             if (!string.IsNullOrWhiteSpace(Config.ConfigCache.OnJoin))
                 await PlayAsync(Config.ConfigCache.OnJoin, voiceChannel.Guild as SocketGuild, true);
         }
+
         public async Task LeaveAsync(IVoiceChannel voiceChannel) => await LavaNode.LeaveAsync(voiceChannel);
+        #endregion
 
-        public async Task UpdateVolumeAsync(IGuild guild, ushort value)
+        #region Volume commands
+        public async Task<Embed> SetVolumeAsync(ushort value)
         {
-            if (LavaNode.TryGetPlayer(guild, out var player))
+            if (Player == null)
+                return NoPlayerEmbed;
+            
+            int oldVolume = GetVolume();
+            value = (ushort)Math.Clamp(value, 0U, 10U); // TODO: Replace magic numbers
+
+            await Player.UpdateVolumeAsync(value);
+
+            var config = Config.ConfigCache;
+            config.Volume = value;
+            await Config.SaveConfigAsync(config);
+
+            return CustomEmbedBuilder.BuildSuccessEmbed("", $"Set volume from {oldVolume} to {value}");
+        }
+
+        public int GetVolume()
+        {
+            if (Player == null)
+                return -1;
+
+            return Player.Volume;
+        }
+
+        public Task<Embed> GetVolumeAsEmbedMessage()
+        {
+            var volume = GetVolume();
+            return Task.FromResult(CustomEmbedBuilder.BuildInfoEmbed("", $"Current player volume is {volume}!"));
+        }
+        #endregion
+
+        #region Playback commands
+        public async Task<(Embed queueEmbed, Embed nowPlayingEmbed)> PlayAsync(string query, IGuild guild, bool forcePlay = false)
+        {
+            if (Player == null)
+                return (NoPlayerEmbed, null);
+
+            var search = await LavaNode.SearchAsync(query);
+
+            switch (search.LoadStatus)
             {
-                await player.UpdateVolumeAsync(value);
-                var config = Config.ConfigCache;
-                config.Volume = value;
-                await Config.SaveConfigAsync(config);
+                case LoadStatus.NoMatches:
+                    return (CustomEmbedBuilder.BuildErrorEmbed("No matches!"), null);
+                case LoadStatus.LoadFailed:
+                    return (CustomEmbedBuilder.BuildErrorEmbed("Load failed!"), null);
+                default:
+                    break;
+            }
+
+            if (search.LoadStatus == LoadStatus.TrackLoaded || search.LoadStatus == LoadStatus.PlaylistLoaded)
+            {
+                var isPlaying = Player.PlayerState == PlayerState.Playing;
+
+                LavaTrack nowPlaying = null;
+
+                foreach (var track in search.Tracks)
+                {
+                    if (nowPlaying == null && (!isPlaying || forcePlay))
+                    {
+                        await Player.PlayAsync(track);
+                        nowPlaying = track;
+                    }
+                    else Player.Queue.Enqueue(track);
+                }
+
+                var embedBuilder = new EmbedBuilder
+                {
+                    Description = $"Enqueued **{search.Tracks.Count}** tracks!"
+                };
+
+                return (embedBuilder.Build(), nowPlaying != null ? await CustomEmbedBuilder.BuildTrackEmbedAsync(nowPlaying) : null);
+            }
+
+            return (null, null);
+        }
+
+        public async Task<Embed> ResumeAsync(SocketGuild guild)
+        {
+            if (Player == null)
+                return NoPlayerEmbed;
+            
+            if (Player.PlayerState == PlayerState.Stopped && Player.Queue.Count > 0)
+            {
+                LavaTrack track = (LavaTrack)Player.Queue.Items.FirstOrDefault();
+                await Player.PlayAsync(track);
+                Player.Queue.Remove(track);
+                return CustomEmbedBuilder.BuildSuccessEmbed($"Resuming with {track.Title}");
+            }
+            else
+            {
+                await Player.ResumeAsync();
+                return CustomEmbedBuilder.BuildSuccessEmbed($"Resumed playback of '{Player.Track.Title}'!");
             }
         }
-
-        public int GetVolume(IGuild guild)
-        {
-            if (LavaNode.TryGetPlayer(guild, out var player))
-                return player.Volume;
-
-            return -1;
-        }
-
-
-
-        private Task Client_Ready()
-        {
-            return Task.CompletedTask;
-        }
-
-        public async Task<string> ResumeAsync(SocketGuild guild)
-        {
-            if (LavaNode.TryGetPlayer(guild, out var player))
-            {
-                await player.ResumeAsync();
-                return $"Resumed playback of '{player.Track.Title}'!";
-            }
-            return "No player detected!";
-        }
-
-        public async Task<string> PauseAsync(SocketGuild guild)
+        public async Task<Embed> PauseAsync(SocketGuild guild)
         {
             if (LavaNode.TryGetPlayer(guild, out var player))
             {
                 await player.PauseAsync();
-                return $"Paused playback of '{player.Track.Title}'!";
+                return CustomEmbedBuilder.BuildSuccessEmbed($"Paused playback of '{player.Track.Title}'!");
             }
-            return "No player detected!";
+            return NoPlayerEmbed;
         }
-
-        public async Task<string> StopAsync(SocketGuild guild)
+        public async Task<Embed> StopAsync(SocketGuild guild)
         {
             if (LavaNode.TryGetPlayer(guild, out var player))
             {
                 await player.StopAsync();
-                return $"Stopped playback of '{player.Track.Title}'!";
+                return CustomEmbedBuilder.BuildSuccessEmbed($"Stopped playback of '{player.Track.Title}'!");
             }
-            return "No player detected!";
+            return NoPlayerEmbed;
         }
 
-        public Task<string> RemoveItemFromQueue(IGuild guild, uint queueId)
+        public async Task<Embed> SkipAsync()
         {
-            if (LavaNode.TryGetPlayer(guild, out var player))
+            if (Player == null)
+                return NoPlayerEmbed;
+
+            var track = Player.Track;
+            await Player.SkipAsync();
+            return CustomEmbedBuilder.BuildSuccessEmbed("", $"Skipped '**{track.Title}**'!");
+        }
+        public Task<LavaTrack> GetCurrentTrack()
+        {
+            if (Player != null)
+                return Task.FromResult(Player.Track);
+
+            return null;
+        }
+        #endregion
+
+        #region Queue commands
+
+        public async Task<Embed> GetQueueMessageEmbedAsync()
+        {
+            if (Player == null)
+                return NoPlayerEmbed;
+
+            var currentTrack = await GetCurrentTrack();
+
+            var currentPosition = new TimeSpan(currentTrack.Position.Hours, currentTrack.Position.Minutes, currentTrack.Position.Seconds);
+            var musicalNote = ":musical_note:";
+            var embedBuilder = new EmbedBuilder
             {
-                if (queueId + 1 > player.Queue.Count)
-                    return Task.FromResult("Index/ID out of bounds");
+                Title = "Track Queue",
+                Description = currentTrack != null ? $"{musicalNote} Currently playing {currentTrack.Title} **[{currentPosition}/{currentTrack.Duration}]**!\n" : ""
+            };
 
-                var item = (LavaTrack)player.Queue.RemoveAt((int)queueId);
-                return Task.FromResult($"Removed '{item.Title}' from queue!");
-            }
-            return Task.FromResult("No player detected!");
-        }
+            var queue = Player.Queue;
 
-        public void Shuffle(IGuild guild)
-        {
-            if (LavaNode.TryGetPlayer(guild, out var player))
-                player.Queue.Shuffle();
-        }
-
-        public async Task<string> PlayAsync(string query, IGuild guild, bool forcePlay = false)
-        {
-            var search = await LavaNode.SearchAsync(query);
-
-            LavaPlayer player = null;
-            if (!LavaNode.TryGetPlayer(guild, out player))
-                return "Player is null!";
-
-            if (search.Tracks.Count > 1)
+            if (queue.Items != null)
             {
-                LavaTrack playTrack = null;
-                foreach (var track in search.Tracks)
+                int tracksPerPage = 10;
+                int index = 0;
+                foreach (var item in queue.Items)
                 {
-                    if (player.PlayerState == PlayerState.Playing && forcePlay == false)
+                    var track = (LavaTrack)item;
+
+                    embedBuilder.Description += $"\n**{++index})** {track.Title} **[{track.Duration}]**";
+                    if (index >= tracksPerPage)
                     {
-                        player.Queue.Enqueue(track);
-                    }
-                    else
-                    {
-                        await player.PlayAsync(track);
-                        playTrack = track;
+                        embedBuilder.Description += $"\nAnd {queue.Count - index} more...";
+                        break;
                     }
                 }
-                return $"Enqueued {search.Tracks.Count} tracks!";
-            }
-            else if (search.Tracks.Count == 1)
-            {
-                var track = search.Tracks.FirstOrDefault();
+                return embedBuilder.Build();
 
-                if (player.PlayerState == PlayerState.Playing && forcePlay == false)
-                {
-                    player.Queue.Enqueue(track);
-                    return $"Enqueued {track.Title}.";
-                }
-                else
-                {
-                    await player.PlayAsync(track);
-                    return $"Playing {track.Title}.";
-                }
+                // TODO: Implement pagescroller through reactions
             }
             else
             {
-                return $"Couldn't find any results!";
+                embedBuilder.Description += "queue.Items is null!";
+                return embedBuilder.Build();
             }
         }
 
-        public DefaultQueue<Victoria.Interfaces.IQueueable> GetQueue(IGuild guild)
+        public async Task<Embed> AddTrackToQueueAsync(LavaTrack track)
         {
-            if (LavaNode.TryGetPlayer(guild, out var player))
-                return player.Queue;
+            if (Player == null)
+                return NoPlayerEmbed;
 
-            return new DefaultQueue<Victoria.Interfaces.IQueueable>();
+            Player.Queue.Enqueue(track);
+
+            return await CustomEmbedBuilder.BuildTrackEmbedAsync(track);
         }
+
+        public Task<Embed> RemoveItemFromQueue(uint queueId)
+        {
+            if (Player == null)
+                return Task.FromResult(NoPlayerEmbed);
+
+            if (queueId + 1 > Player.Queue.Count)
+                return Task.FromResult(CustomEmbedBuilder.BuildErrorEmbed("Index/ID out of bounds"));
+
+            var item = (LavaTrack)Player.Queue.RemoveAt((int)queueId);
+            return Task.FromResult(CustomEmbedBuilder.BuildSuccessEmbed("", $"Removed '{item.Title}' from queue!"));
+        }
+
+        public Task<Embed> Shuffle()
+        {
+            if (Player == null)
+                return Task.FromResult(NoPlayerEmbed);
+
+            Player.Queue.Shuffle();
+            return Task.FromResult(CustomEmbedBuilder.BuildSuccessEmbed("", "Shuffled queue!"));
+        }
+        #endregion
     }
 }
