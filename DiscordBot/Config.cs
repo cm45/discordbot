@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Victoria;
@@ -39,12 +40,18 @@ namespace DiscordBot
         }
         public static async Task<Config> LoadConfigAsync()
         {
-            // TODO: Add exceptionhandling!
-            
-            var jsonString = await File.ReadAllTextAsync(Path);
-            var config = JsonConvert.DeserializeObject<Config>(jsonString);
-            ConfigCache = config;
-            return config;
+            try
+            {
+                var jsonString = await File.ReadAllTextAsync(Path);
+                var config = JsonConvert.DeserializeObject<Config>(jsonString);
+                ConfigCache = config;
+                return config;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Couldn't load config!\n" + ex.Message);
+                throw ex;
+            }
         }
 
         public static async Task SaveConfigAsync(Config config)

@@ -15,40 +15,40 @@ namespace DiscordBot.EscapeFromTarkovAPI
             public string ToClickableLink() => $"[{Title}]({URL})";
         }
 
-        public static void AddLink(string title, string url)
-        {
-            using (var db = new LiteDatabase(TarkovAPI.DbPath))
-            {
-                var collection = db.GetCollection<Link>("links");
+        //public static void AddLink(string title, string url)
+        //{
+        //    using (var db = new LiteDatabase(TarkovAPI.DbPath))
+        //    {
+        //        var collection = db.GetCollection<Link>("links");
 
-                var link = new Link()
-                {
-                    Title = title,
-                    URL = url
-                };
+        //        var link = new Link()
+        //        {
+        //            Title = title,
+        //            URL = url
+        //        };
 
-                collection.Insert(link);
-                collection.EnsureIndex(x => x.Title);
-            }
-        }
+        //        collection.Insert(link);
+        //        collection.EnsureIndex(x => x.Title);
+        //    }
+        //}
 
-        public static Link[] GetLinks()
-        {
-            using (var db = new LiteDatabase(TarkovAPI.DbPath))
-            {
-                var collection = db.GetCollection<Link>("links");
-                var results = collection.FindAll();
-                return results.ToArray();
-            }
-        }
+        //public static Link[] GetLinks()
+        //{
+        //    using (var db = new LiteDatabase(TarkovAPI.DbPath))
+        //    {
+        //        var collection = db.GetCollection<Link>("links");
+        //        var results = collection.FindAll();
+        //        return results.ToArray();
+        //    }
+        //}
 
-        public static void RemoveLink(string title)
-        {
-            using (var db = new LiteDatabase(TarkovAPI.DbPath))
-            {
-                var collection = db.GetCollection<Link>("links");
-                collection.Delete(Query.EQ("Title", title));
-            }
-        }
+        //public static void RemoveLink(string title)
+        //{
+        //    using (var db = new LiteDatabase(TarkovAPI.DbPath))
+        //    {
+        //        var collection = db.GetCollection<Link>("links");
+        //        collection.Delete(Query.EQ("Title", title));
+        //    }
+        //}
     }
 }

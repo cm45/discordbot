@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordBot.EscapeFromTarkovAPI;
 using DiscordBot.Services;
 using DiscordBot.Services.Music;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,6 +78,7 @@ namespace DiscordBot
                  .AddSingleton(LavaConfig)
                  .AddSingleton(LavaNode)
                  .AddSingleton(MusicService)
+                 .AddSingleton<TarkovAPI>()
                  .BuildServiceProvider();
         }
 

@@ -344,3 +344,4 @@ healthchecksdb
 /DiscordBot/config.json
 /DiscordBot/sodium.dll
 /DiscordBot/opus.dll
+/DiscordBot.EscapeFromTarkovAPI/connectionString

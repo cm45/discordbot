@@ -7,8 +7,17 @@ using System.Text;
 
 namespace DiscordBot.EscapeFromTarkovAPI
 {
-    public static class TarkovAPI
+    public class TarkovAPI
     {
-        public static string DbPath = @"C:\_temp\EscapeFromTarkov.db"; // TODO: Make cross platform compatible
+        public TarkovContext Context { get; private set; }
+
+        public TarkovAPI()
+        {
+            Context = new TarkovContext();
+        }
+
+        public IEnumerable<Weapon> GetWeapons() => Context.Weapons.ToArray();
+        public IEnumerable<Caliber> GetCalibers() => Context.Calibers.ToArray();
+        public IEnumerable<Ammo> GetAmmos() => Context.Ammos.ToArray();
     }
 }
