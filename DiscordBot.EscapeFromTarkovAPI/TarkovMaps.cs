@@ -25,32 +25,32 @@ namespace DiscordBot.EscapeFromTarkovAPI
             public string ToClickableLink() => $"[{Name}]({URL})";
         }
 
-        public static void AddMap(Map map)
-        {
-            try
-            {
-                using (var db = new LiteDatabase(TarkovAPI.DbPath))
-                {
-                    var collection = db.GetCollection<Map>("maps");
-                    collection.Insert(map);
-                    collection.EnsureIndex(x => x.Name);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw ex;
-            }
-        }
+        //public static void AddMap(Map map)
+        //{
+        //    try
+        //    {
+        //        using (var db = new LiteDatabase(TarkovAPI.DbPath))
+        //        {
+        //            var collection = db.GetCollection<Map>("maps");
+        //            collection.Insert(map);
+        //            collection.EnsureIndex(x => x.Name);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex.Message);
+        //        throw ex;
+        //    }
+        //}
 
-        public static Map[] GetMaps()
-        {
-            using (var db = new LiteDatabase(TarkovAPI.DbPath))
-            {
-                var collection = db.GetCollection<Map>("maps");
-                var results = collection.FindAll();
-                return results.ToArray();
-            }
-        }
+        //public static Map[] GetMaps()
+        //{
+        //    using (var db = new LiteDatabase(TarkovAPI.DbPath))
+        //    {
+        //        var collection = db.GetCollection<Map>("maps");
+        //        var results = collection.FindAll();
+        //        return results.ToArray();
+        //    }
+        //}
     }
 }
