@@ -39,13 +39,6 @@ namespace DiscordBot.Services.Music
             return Task.CompletedTask;
         }
 
-        private async Task LavaNode_OnPlayerUpdated(Victoria.EventArgs.PlayerUpdateEventArgs arg)
-        {
-            if (Player == null || Player.Track == null)
-                return;
-
-            await Client.SetGameAsync(Player.Track.Title, Player.Track.Url);
-        }
         #region Event-Methods
         private Task Client_UserVoiceStateUpdated(SocketUser user, SocketVoiceState oldVoiceState, SocketVoiceState newVoiceState)
         {
@@ -58,6 +51,8 @@ namespace DiscordBot.Services.Music
         }
         private async Task LavaNode_OnTrackEnded(Victoria.EventArgs.TrackEndedEventArgs args)
         {
+            Console.WriteLine("Ended track!");
+
             if (!args.Reason.ShouldPlayNext())
                 return;
 
@@ -69,18 +64,27 @@ namespace DiscordBot.Services.Music
 
             await args.Player.PlayAsync((LavaTrack)track);
         }
+        private async Task LavaNode_OnPlayerUpdated(Victoria.EventArgs.PlayerUpdateEventArgs arg)
+        {
+            Console.WriteLine("Updated Player!");
+
+            if (arg.Player.PlayerState == PlayerState.Playing)
+                await Client.SetGameAsync(Player.Track.Title, Player.Track.Url);
+            else
+                await Client.SetActivityAsync(null);
+        }
         #endregion
 
         #region Connection-handling commands
-        public async Task JoinAsync(IVoiceChannel voiceChannel, ITextChannel textChannel)
+        public async Task JoinAsync(IVoiceChannel voiceChannel, ITextChannel textChannel, bool playOnJoinTrack = false)
         {
             Player = await LavaNode.JoinAsync(voiceChannel, textChannel);
             await Player.UpdateVolumeAsync(Config.ConfigCache.Volume);
 
-            if (!string.IsNullOrWhiteSpace(Config.ConfigCache.OnJoin))
+            // Play On Join Song
+            if (!string.IsNullOrWhiteSpace(Config.ConfigCache.OnJoin) && playOnJoinTrack)
                 await PlayAsync(Config.ConfigCache.OnJoin, voiceChannel.Guild as SocketGuild, true);
         }
-
         public async Task LeaveAsync(IVoiceChannel voiceChannel) => await LavaNode.LeaveAsync(voiceChannel);
         #endregion
 
@@ -89,7 +93,7 @@ namespace DiscordBot.Services.Music
         {
             if (Player == null)
                 return NoPlayerEmbed;
-            
+
             int oldVolume = GetVolume();
             value = (ushort)Math.Clamp(value, 0U, 10U); // TODO: Replace magic numbers
 
@@ -101,7 +105,6 @@ namespace DiscordBot.Services.Music
 
             return CustomEmbedBuilder.BuildSuccessEmbed("", $"Set volume from {oldVolume} to {value}");
         }
-
         public int GetVolume()
         {
             if (Player == null)
@@ -109,11 +112,11 @@ namespace DiscordBot.Services.Music
 
             return Player.Volume;
         }
-
         public Task<Embed> GetVolumeAsEmbedMessage()
         {
-            var volume = GetVolume();
-            return Task.FromResult(CustomEmbedBuilder.BuildInfoEmbed("", $"Current player volume is {volume}!"));
+            var playerVolume = GetVolume();
+            var volumeString = playerVolume == -1 ? Config.ConfigCache.Volume.ToString() : playerVolume.ToString();
+            return Task.FromResult(CustomEmbedBuilder.BuildInfoEmbed("", $"Current volume is {volumeString}!"));
         }
         #endregion
 
@@ -161,12 +164,11 @@ namespace DiscordBot.Services.Music
 
             return (null, null);
         }
-
         public async Task<Embed> ResumeAsync(SocketGuild guild)
         {
             if (Player == null)
                 return NoPlayerEmbed;
-            
+
             if (Player.PlayerState == PlayerState.Stopped && Player.Queue.Count > 0)
             {
                 LavaTrack track = (LavaTrack)Player.Queue.Items.FirstOrDefault();
@@ -182,23 +184,22 @@ namespace DiscordBot.Services.Music
         }
         public async Task<Embed> PauseAsync(SocketGuild guild)
         {
-            if (LavaNode.TryGetPlayer(guild, out var player))
-            {
-                await player.PauseAsync();
-                return CustomEmbedBuilder.BuildSuccessEmbed($"Paused playback of '{player.Track.Title}'!");
-            }
-            return NoPlayerEmbed;
+            if (Player == null)
+                return NoPlayerEmbed;
+
+            await Player.PauseAsync();
+            return CustomEmbedBuilder.BuildSuccessEmbed($"Paused playback of '{Player.Track.Title}'!");
         }
         public async Task<Embed> StopAsync(SocketGuild guild)
         {
-            if (LavaNode.TryGetPlayer(guild, out var player))
-            {
-                await player.StopAsync();
-                return CustomEmbedBuilder.BuildSuccessEmbed($"Stopped playback of '{player.Track.Title}'!");
-            }
-            return NoPlayerEmbed;
-        }
+            if (Player == null)
+                return NoPlayerEmbed;
 
+            await Player.StopAsync();
+            await Client.SetActivityAsync(null); 
+            
+            return CustomEmbedBuilder.BuildSuccessEmbed($"Stopped playback of '{Player.Track.Title}'!");
+        }
         public async Task<Embed> SkipAsync()
         {
             if (Player == null)
@@ -218,7 +219,6 @@ namespace DiscordBot.Services.Music
         #endregion
 
         #region Queue commands
-
         public async Task<Embed> GetQueueMessageEmbedAsync()
         {
             if (Player == null)
@@ -261,7 +261,6 @@ namespace DiscordBot.Services.Music
                 return embedBuilder.Build();
             }
         }
-
         public async Task<Embed> AddTrackToQueueAsync(LavaTrack track)
         {
             if (Player == null)
@@ -271,7 +270,6 @@ namespace DiscordBot.Services.Music
 
             return await CustomEmbedBuilder.BuildTrackEmbedAsync(track);
         }
-
         public Task<Embed> RemoveItemFromQueue(uint queueId)
         {
             if (Player == null)
@@ -283,7 +281,6 @@ namespace DiscordBot.Services.Music
             var item = (LavaTrack)Player.Queue.RemoveAt((int)queueId);
             return Task.FromResult(CustomEmbedBuilder.BuildSuccessEmbed("", $"Removed '{item.Title}' from queue!"));
         }
-
         public Task<Embed> Shuffle()
         {
             if (Player == null)

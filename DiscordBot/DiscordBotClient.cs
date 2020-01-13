@@ -73,13 +73,13 @@ namespace DiscordBot
         private IServiceProvider SetupServices()
         {
             return new ServiceCollection()
-                 .AddSingleton(Client)
-                 .AddSingleton(CommandService)
-                 .AddSingleton(LavaConfig)
-                 .AddSingleton(LavaNode)
-                 .AddSingleton(MusicService)
-                 .AddSingleton<TarkovAPI>()
-                 .BuildServiceProvider();
+                .AddSingleton(Client)
+                .AddSingleton(CommandService)
+                .AddSingleton(LavaConfig)
+                .AddSingleton(LavaNode)
+                .AddSingleton(MusicService)
+                .AddSingleton<TarkovAPI>()
+                .BuildServiceProvider();
         }
 
         private Task Client_Log(LogMessage arg)

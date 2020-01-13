@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DiscordBot.Modules
 {
-    [Group("eft")]
+    [Group("eft"), Name("Escape from Tarkov")]
     public class EscapeFromTarkovModule : ModuleBase<SocketCommandContext>
     {
         public TarkovAPI TarkovAPI { get; set; }
@@ -35,7 +35,7 @@ namespace DiscordBot.Modules
         {
             public TarkovAPI TarkovAPI { get; set; }
 
-            [Command]
+            [Command, Priority(10)]
             public async Task AllWeapons()
             {
                 var weapons = TarkovAPI.GetWeapons();
@@ -49,7 +49,7 @@ namespace DiscordBot.Modules
                 await ReplyAsync(msg);
             }
 
-            [Command]
+            [Command, Priority(5)]
             public async Task GetWeapon([Remainder] string query)
             {
                 query = query.RemoveWhitespacesAndSeperators().ToLower();
@@ -74,14 +74,14 @@ namespace DiscordBot.Modules
 
                     if (weapon.Caliber == null)
                     {
-                        await ReplyAsync("Caliber is null");
+                        await ReplyAsync("ERR Caliber is null");
                         return;
                     }
 
-                    embedBuilder.Description += $"Caliber: **{weapon.Caliber.Name}**";
+                    embedBuilder.Description += $"Caliber: **{weapon.Caliber?.Name}**";
                     embedBuilder.Description += "Ammos:\n";
                     
-                    foreach (var ammo in weapon.Caliber.Ammos)
+                    foreach (var ammo in weapon.Caliber?.Ammos)
                     {
                         var projectileCountString = ammo.Projectiles > 1 ? ammo.Projectiles.ToString() + "x" : "";
 

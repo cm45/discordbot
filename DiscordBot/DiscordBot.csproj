@@ -3,6 +3,18 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <Version>0.1.1</Version>
+    <Authors>Christoph Müller</Authors>
+    <Product>Plexi</Product>
+    <Description>A Discord Bot</Description>
+    <RepositoryUrl>https://github.com/cm45/DiscordBot/</RepositoryUrl>
+    <RepositoryType></RepositoryType>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <NeutralLanguage></NeutralLanguage>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyVersion>0.1.1.0</AssemblyVersion>
+    <FileVersion>0.1.1.0</FileVersion>
+	<SourceRevisionId>build$([System.DateTime]::UtcNow.ToString("yyyyMMddHHmmss"))</SourceRevisionId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +25,9 @@
     <PackageReference Include="Discord.Net.Webhook" Version="2.1.1" />
     <PackageReference Include="Discord.Net.WebSocket" Version="2.1.1" />
     <PackageReference Include="LiteDB" Version="4.1.4" />
+    <PackageReference Include="Microsoft.DotNet.PlatformAbstractions" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
+    <PackageReference Include="System.IO.Packaging" Version="4.7.0" />
     <PackageReference Include="Victoria" Version="5.1.0" />
   </ItemGroup>
 

@@ -13,55 +13,46 @@ using Victoria.Enums;
 
 namespace DiscordBot.Modules
 {
-    [Group("music")]
+    [Group("music"), Alias("m"), Name("Music")]
     public class MusicModule : ModuleBase<SocketCommandContext>
     {
         public MusicService MusicService { get; set; }
 
         private IVoiceChannel VoiceChannel => (Context.User as IGuildUser).VoiceChannel;
 
-
-        [Command, Alias("info", "current", "track", "song", "information", "playing")]
+        [Command, Alias("info", "current", "track", "song", "information", "playing"), Summary("Gets info about the current Track, Volume & Queue as well as a command help list?!")]
         public async Task Info()
         {
             var track = await MusicService.GetCurrentTrack();
-            var description = track != null ? $"Currently playing: {track.Title}" : "Idle...";
 
             var embedBuilder = new EmbedBuilder()
-                .WithTitle("Musicbot - Info")
-                .WithDescription(description);
+                .WithTitle("Musicbot - Info");
 
-            if (MusicService.Player != null)
-            {
-                var player = MusicService.Player;
+            embedBuilder.AddField("Status", MusicService.Player.PlayerState.ToString());
 
-                embedBuilder.AddField("Channel", player.VoiceChannel);
-                embedBuilder.AddField("Volume", player.Volume);
-                if (player.Track != null)
-                {
-                    embedBuilder.AddField("Time", $"WIP/{player.Track.Duration}");
-                }
-            }
+            if (MusicService.Player.PlayerState == PlayerState.Playing)
+                embedBuilder.AddField("Currently Playing", track.Title);
 
-            var embed = embedBuilder.Build();
+            embedBuilder.AddField("Current Voicechannel", MusicService.Player.VoiceChannel.Name ?? "None");
+            embedBuilder.AddField("Volume", MusicService.Player.Volume.ToString() ?? Config.ConfigCache.Volume.ToString());
 
-            await ReplyAsync(embed: embed);
+            await ReplyAsync(embed: embedBuilder.Build());
         }
 
         #region Connection
         [Command("join"), Alias("summon", "connect")]
         public async Task Join(IVoiceChannel voiceChannel = null)
         {
-            await MusicService.JoinAsync(voiceChannel ?? VoiceChannel, Context.Channel as ITextChannel);
+            await MusicService.JoinAsync(voiceChannel ?? VoiceChannel, Context.Channel as ITextChannel, true);
             await ReplyAsync($"Joined {voiceChannel} channel!");
         }
 
         [Command("leave"), Alias("disconnect")]
         public async Task Leave()
         {
-            var voiceChannelString = MusicService.Player.VoiceChannel.ToString();
+            var currentChannelString = MusicService.Player.VoiceChannel.ToString();
             await MusicService.LeaveAsync(VoiceChannel);
-            await ReplyAsync($"Left {voiceChannelString}");
+            await ReplyAsync($"Left {currentChannelString}!");
         }
         #endregion
 
@@ -75,8 +66,10 @@ namespace DiscordBot.Modules
             var (queueEmbed, nowPlayingEmbed) = await MusicService.PlayAsync(query, Context.Guild);
             if (queueEmbed != null) await ReplyAsync(embed: queueEmbed);
             if (nowPlayingEmbed != null) await ReplyAsync(embed: nowPlayingEmbed);
+
         }
-        [Command("forceplay")]
+
+        [Command("forceplay"), Alias("playnow")]
         public async Task ForcePlay([Remainder] string query)
         {
             if (MusicService.Player == null)
@@ -90,8 +83,6 @@ namespace DiscordBot.Modules
         [Command("resume"), Alias("r")] public async Task Resume() => await ReplyAsync(embed: await MusicService.ResumeAsync(Context.Guild));
         [Command("pause")] public async Task Pause() => await ReplyAsync(embed: await MusicService.PauseAsync(Context.Guild));
         [Command("stop"), Alias("s")] public async Task Stop() => await ReplyAsync(embed: await MusicService.StopAsync(Context.Guild));
-
-
         #endregion
 
         #region Volume control
