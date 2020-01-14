@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Commands.Builders;
 using Microsoft.DotNet.PlatformAbstractions;
 using Microsoft.Extensions.PlatformAbstractions;
 using System;
@@ -18,11 +19,23 @@ namespace DiscordBot.Modules
     {
         public CommandService CommandService { get; set; }
 
+        public uint CommandCounter { get; private set; } // TODO: Save in database?
+
+        protected override void OnModuleBuilding(CommandService commandService, ModuleBuilder builder)
+        {
+            CommandService.CommandExecuted += (Optional<CommandInfo> arg1, ICommandContext arg2, IResult arg3) =>
+                {
+                    CommandCounter++;
+                    return Task.CompletedTask;
+                };
+
+            base.OnModuleBuilding(commandService, builder);
+        }
+
         // Get Version
         [Command("info")]
         public async Task GetInfo()
         {
-
             var embedBuilder = new EmbedBuilder()
             {
                 Title = "Plexi - Info",
@@ -34,7 +47,7 @@ namespace DiscordBot.Modules
             embedBuilder.AddField("Application-Uptime", GetUptimeString());
             embedBuilder.AddField("Running on", Environment.OSVersion);
             embedBuilder.AddField("Build-Date", GetBuildDate(Assembly.GetExecutingAssembly()).ToLocalTime());
-            //embedBuilder.AddField("Commands since startup", GetCommandsSinceStartupString()); // TODO:
+            embedBuilder.AddField("Successful commands since startup", CommandCounter);
 
             // Get active modules
             embedBuilder.AddField("Active Modules", GetActiveModulesString());
