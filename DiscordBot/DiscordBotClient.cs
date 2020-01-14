@@ -80,6 +80,7 @@ namespace DiscordBot
                 .AddSingleton(MusicService)
                 .AddSingleton<TarkovAPI>()
                 .AddSingleton<Random>()
+                .AddSingleton<ReminderService>()
                 .BuildServiceProvider();
         }
 
