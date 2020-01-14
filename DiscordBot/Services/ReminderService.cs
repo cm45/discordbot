@@ -38,16 +38,13 @@ namespace DiscordBot.Services
                 StartTime = startTime;
                 EndTime = endTime;
 
-                Console.WriteLine("Creating Reminder...");
-
                 TimeSpan time = EndTime.TimeOfDay - DateTime.Now.TimeOfDay;
                 timer = new Timer(x => Remind(), null, time, Timeout.InfiniteTimeSpan);
             }
 
             public Task Remind()
             {
-                Console.WriteLine("YAY");
-                Creator.SendMessageAsync($"**[Reminder]** *{Message}* from {StartTime}");
+                Creator.SendMessageAsync($"**\"[Reminder]\"** *{Message}* from {StartTime}");
 
                 return Task.CompletedTask;
             }
