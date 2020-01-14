@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiscordBot.Services
@@ -19,7 +20,7 @@ namespace DiscordBot.Services
             return Task.CompletedTask;
         }
 
-        public struct Reminder
+        public class Reminder
         {
             public string Message { get; set; }
             public bool IsPublic { get; set; }
@@ -27,7 +28,31 @@ namespace DiscordBot.Services
             public DateTime StartTime { get; set; }
             public DateTime EndTime { get; set; }
 
-            public override string ToString() => $"\"{Message}\" by {Creator.Nickname} created at {StartTime} and ends at {EndTime}!\n";
+            private Timer timer;
+
+            public Reminder(string message, bool isPublic, IGuildUser creator, DateTime startTime, DateTime endTime)
+            {
+                Message = message;
+                IsPublic = isPublic;
+                Creator = creator;
+                StartTime = startTime;
+                EndTime = endTime;
+
+                Console.WriteLine("Creating Reminder...");
+
+                TimeSpan time = EndTime.TimeOfDay - DateTime.Now.TimeOfDay;
+                timer = new Timer(x => Remind(), null, time, Timeout.InfiniteTimeSpan);
+            }
+
+            public Task Remind()
+            {
+                Console.WriteLine("YAY");
+                Creator.SendMessageAsync($"**[Reminder]** *{Message}* from {StartTime}");
+
+                return Task.CompletedTask;
+            }
+
+            public override string ToString() => $"*\"{Message}\"* by {Creator.Mention} created at **{StartTime}** and ends at **{EndTime}**!\n";
         }
     }
 

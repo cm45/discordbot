@@ -25,14 +25,7 @@ namespace DiscordBot.Modules
                 return;
             }
 
-            var reminder = new Reminder
-            {
-                Creator = Context.User as IGuildUser,
-                Message = message,
-                IsPublic = false,
-                StartTime = DateTime.Now,
-                EndTime = time
-            };
+            var reminder = new Reminder(message, false, Context.User as IGuildUser, DateTime.Now, time);
 
             await ReminderService.AddReminder(reminder);
 
@@ -48,20 +41,9 @@ namespace DiscordBot.Modules
                 return;
             }
 
-            var reminder = new Reminder
-            {
-                Creator = Context.User as IGuildUser,
-                Message = message,
-                IsPublic = false,
-                StartTime = DateTime.Now,
-                EndTime = DateTime.Now + time
-            };
-
-            string s = $"Old count = {ReminderService.Reminders.Count}";
+            var reminder = new Reminder(message, false, Context.User as IGuildUser, DateTime.Now, DateTime.Now + time);
             await ReminderService.AddReminder(reminder);
-            s += $"New count = {ReminderService.Reminders.Count}";
-
-            await ReplyAsync(s + "Added reminder!");
+            await ReplyAsync("Added reminder!");
         }
 
         [Command("reminder")]
@@ -69,7 +51,7 @@ namespace DiscordBot.Modules
         {
             var reminders = ReminderService.Reminders.Where(r => r.Creator == Context.User || r.IsPublic == true);
 
-            var remindersString = reminders.Count().ToString() + '\n' + ReminderService.Reminders.Count().ToString() + '\n';
+            var remindersString = "";
             foreach (var reminder in reminders)
                 remindersString += reminder;
 
