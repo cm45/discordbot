@@ -77,6 +77,7 @@ namespace DiscordBot
                 .AddSingleton(CommandService)
                 .AddSingleton(LavaConfig)
                 .AddSingleton(LavaNode)
+                .AddSingleton<PlaylistService>()
                 .AddSingleton(MusicService)
                 .AddSingleton<TarkovAPI>()
                 .AddSingleton<Random>()

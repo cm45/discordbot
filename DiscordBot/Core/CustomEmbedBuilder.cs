@@ -12,6 +12,9 @@ namespace DiscordBot.Core
         public static Color ColorSuccess { get; } = Color.Green;
         public static Color ColorError { get; } = Color.Red;
         public static Color ColorInfo { get; } = Color.Blue;
+        
+        public static Embed NoPlayerEmbed = BuildErrorEmbed("No player found!");
+
 
         #region Error Embeds
         public static Embed BuildErrorEmbed(string message)
