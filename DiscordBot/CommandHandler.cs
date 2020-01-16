@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using DiscordBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -15,11 +16,14 @@ namespace DiscordBot
         public CommandService CommandService { get; private set; }
         public IServiceProvider Services { get; private set; }
 
+        public SettingsService SettingsService { get; private set; }
+
         public CommandHandler(DiscordSocketClient client, CommandService commandService, IServiceProvider services)
         {
             Client = client;
             CommandService = commandService;
             Services = services;
+            SettingsService = (SettingsService)services.GetService(typeof(SettingsService));
         }
 
         public async Task InitializeAsync()
@@ -31,15 +35,13 @@ namespace DiscordBot
 
         private async Task Client_MessageReceived(SocketMessage msg)
         {
-            Console.WriteLine(msg.Content);
-
             if (!(msg is SocketUserMessage userMessage))
                 return;
 
             var argPos = 0;
 
             // Check prefix
-            var prefixString = (await Config.LoadConfigAsync()).Prefix;
+            var prefixString = SettingsService.Config.Prefix;
 
             var hasPrefix = userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos) || userMessage.HasStringPrefix(prefixString, ref argPos);
                         

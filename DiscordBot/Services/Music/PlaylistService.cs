@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Victoria;
 
-namespace DiscordBot.Services
+namespace DiscordBot.Services.Music
 {
     public class PlaylistService
     {

@@ -57,11 +57,20 @@ namespace DiscordBot.Core
 
 
         #region Success Embeds
-        public static Embed BuildSuccessEmbed(string title, string message = null)
+        public static Embed BuildSuccessEmbed(string title, string message)
         {
             var embedBuilder = new EmbedBuilder
             {
                 Title = title,
+                Description = message,
+                Color = ColorSuccess
+            };
+            return embedBuilder.Build();
+        }
+        public static Embed BuildSuccessEmbed(string message = null)
+        {
+            var embedBuilder = new EmbedBuilder
+            {
                 Description = message,
                 Color = ColorSuccess
             };

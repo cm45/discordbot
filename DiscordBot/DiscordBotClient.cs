@@ -21,10 +21,13 @@ namespace DiscordBot
         public LavaNode LavaNode { get; private set; }
         public LavaConfig LavaConfig { get; private set; }
         public MusicService MusicService { get; private set; }
+        public SettingsService SettingsService { get; private set; }
 
 
         public DiscordBotClient(DiscordSocketClient client = null, CommandService commandService = null, LavaNode lavaNode = null)
         {
+            SettingsService = new SettingsService();
+
             Client = client ?? new DiscordSocketClient(new DiscordSocketConfig
             {
                 AlwaysDownloadUsers = true,
@@ -38,7 +41,7 @@ namespace DiscordBot
             });
 
             // Music
-            LavaConfig = Config.ConfigCache.LavaConfig;
+            LavaConfig = SettingsService.Config.LavaConfig;
             LavaNode = lavaNode ?? new LavaNode(Client, LavaConfig);
             MusicService = new MusicService(Client, LavaConfig, LavaNode);
             MusicService.InitializeAsync().GetAwaiter().GetResult();
@@ -46,10 +49,8 @@ namespace DiscordBot
 
         public async Task InitializeAsync()
         {
-            var config = await Config.LoadConfigAsync();
-
             // Connect
-            await Client.LoginAsync(TokenType.Bot, config.Token);
+            await Client.LoginAsync(TokenType.Bot, SettingsService.Config.Token);
             await Client.StartAsync();
 
             // Event-handling
@@ -73,12 +74,14 @@ namespace DiscordBot
         private IServiceProvider SetupServices()
         {
             return new ServiceCollection()
+                .AddSingleton(SettingsService)
                 .AddSingleton(Client)
                 .AddSingleton(CommandService)
                 .AddSingleton(LavaConfig)
                 .AddSingleton(LavaNode)
-                .AddSingleton<PlaylistService>()
                 .AddSingleton(MusicService)
+                .AddSingleton<QueueService>()
+                .AddSingleton<PlaylistService>()
                 .AddSingleton<TarkovAPI>()
                 .AddSingleton<Random>()
                 .AddSingleton<ReminderService>()
