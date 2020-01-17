@@ -53,9 +53,18 @@ namespace DiscordBot.Modules.Music
         [Command("leave"), Alias("disconnect")]
         public async Task Leave()
         {
-            var currentChannelString = MusicService.Player.VoiceChannel.ToString();
-            await MusicService.LeaveAsync(VoiceChannel);
-            await ReplyAsync($"Left {currentChannelString}!");
+            try
+            {
+                var currentChannelString = MusicService.Player.VoiceChannel.ToString();
+                await MusicService.StopAsync();
+                await MusicService.LeaveAsync(VoiceChannel);
+                await ReplyAsync($"Left {currentChannelString}!");
+            }
+            catch (Exception ex)
+            {
+                await ReplyAsync(embed: CustomEmbedBuilder.BuildErrorEmbed(ex.Message));
+                throw ex;
+            }
         }
         #endregion
 
@@ -63,7 +72,7 @@ namespace DiscordBot.Modules.Music
         [Command("play"), Alias("p")]
         public async Task Play([Remainder] string query)
         {
-            if (MusicService.Player == null)
+            if (MusicService.Player == null || MusicService.Player.VoiceChannel == null)
                 await MusicService.JoinAsync(VoiceChannel, Context.Channel as ITextChannel);
 
             try
@@ -82,9 +91,9 @@ namespace DiscordBot.Modules.Music
             }
         }
 
-        [Command("resume"), Alias("r")] public async Task Resume() => await ReplyAsync(embed: await MusicService.ResumeAsync(Context.Guild));
-        [Command("pause")] public async Task Pause() => await ReplyAsync(embed: await MusicService.PauseAsync(Context.Guild));
-        [Command("stop"), Alias("s")] public async Task Stop() => await ReplyAsync(embed: await MusicService.StopAsync(Context.Guild));
+        [Command("resume"), Alias("r")] public async Task Resume() => await ReplyAsync(embed: await MusicService.ResumeAsync());
+        [Command("pause")] public async Task Pause() => await ReplyAsync(embed: await MusicService.PauseAsync());
+        [Command("stop"), Alias("s")] public async Task Stop() => await ReplyAsync(embed: await MusicService.StopAsync());
         #endregion
 
         #region Volume control

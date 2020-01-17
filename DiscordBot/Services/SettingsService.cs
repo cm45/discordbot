@@ -8,7 +8,7 @@ namespace DiscordBot.Services
 {
     public class SettingsService
     {
-        private const string ConfigPath = "Configurations/config.json";
+        private const string ConfigPath = "config.json";
 
         public Config Config { get; private set; }
 

@@ -171,10 +171,12 @@ namespace DiscordBot.Modules.Music
                 return;
             }
 
-            var tracks = MusicService.Player.Queue.Items.Cast<LavaTrack>().ToList();
+            var tracks = new List<LavaTrack>();
 
             if (MusicService.Player.Track != null && tracks != null)
                 tracks.Add(MusicService.Player.Track);
+
+            tracks.AddRange(MusicService.Player.Queue.Items.Cast<LavaTrack>());
 
             if (tracks.Count <= 0 && MusicService.Player.Track == null)
             {

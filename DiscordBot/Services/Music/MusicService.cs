@@ -23,6 +23,7 @@ namespace DiscordBot.Services.Music
         public LavaNode LavaNode { get; private set; }
         public LavaPlayer Player { get; private set; }
         public SettingsService SettingsService { get; set; }
+        public QueueService QueueService { get; set; }
 
         public MusicService(DiscordSocketClient client, LavaConfig lavaConfig, LavaNode lavaNode)
         {
@@ -54,16 +55,14 @@ namespace DiscordBot.Services.Music
         }
         private async Task LavaNode_OnTrackEnded(Victoria.EventArgs.TrackEndedEventArgs args)
         {
-            Console.WriteLine("Ended track!");
-
             if (!args.Reason.ShouldPlayNext())
                 return;
 
             if (!args.Player.Queue.TryDequeue(out var track))
-            {
-                await args.Player.TextChannel.SendMessageAsync("No more tracks to play.");
                 return;
-            }
+
+            if (SettingsService.Config.MusicBot.IsRepeating)
+                await QueueService.AddTrackToQueueAsync((LavaTrack)track);
 
             await args.Player.PlayAsync((LavaTrack)track);
         }
@@ -88,7 +87,15 @@ namespace DiscordBot.Services.Music
             //    await PlayAsync(Config.ConfigCache.OnJoin, true);
             //}
         }
-        public async Task LeaveAsync(IVoiceChannel voiceChannel) => await LavaNode.LeaveAsync(voiceChannel);
+        public async Task LeaveAsync(IVoiceChannel voiceChannel)
+        {
+            voiceChannel ??= Player.VoiceChannel;
+
+            if (voiceChannel == null)
+                throw PlayerNotFoundException;
+
+            await LavaNode.LeaveAsync(voiceChannel);
+        }
         #endregion
 
         #region Volume commands
@@ -177,7 +184,7 @@ namespace DiscordBot.Services.Music
             await Player.PlayAsync(track);
         }
 
-        public async Task<Embed> ResumeAsync(SocketGuild guild)
+        public async Task<Embed> ResumeAsync()
         {
             if (Player == null)
                 return NoPlayerEmbed;
@@ -195,7 +202,7 @@ namespace DiscordBot.Services.Music
                 return CustomEmbedBuilder.BuildSuccessEmbed($"Resumed playback of '{Player.Track.Title}'!");
             }
         }
-        public async Task<Embed> PauseAsync(SocketGuild guild)
+        public async Task<Embed> PauseAsync()
         {
             if (Player == null)
                 return NoPlayerEmbed;
@@ -203,7 +210,7 @@ namespace DiscordBot.Services.Music
             await Player.PauseAsync();
             return CustomEmbedBuilder.BuildSuccessEmbed($"Paused playback of '{Player.Track.Title}'!");
         }
-        public async Task<Embed> StopAsync(SocketGuild guild)
+        public async Task<Embed> StopAsync()
         {
             if (Player == null)
                 return NoPlayerEmbed;

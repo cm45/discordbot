@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.Commands.Builders;
+using DiscordBot.Services;
 using Microsoft.DotNet.PlatformAbstractions;
 using Microsoft.Extensions.PlatformAbstractions;
 using System;
@@ -18,18 +19,23 @@ namespace DiscordBot.Modules
     public class CoreModule : ModuleBase<SocketCommandContext>
     {
         public CommandService CommandService { get; set; }
-
-        public uint CommandCounter { get; private set; } // TODO: Save in database?
+        public CoreService CoreService { get; set; }
 
         protected override void OnModuleBuilding(CommandService commandService, ModuleBuilder builder)
         {
-            CommandService.CommandExecuted += (Optional<CommandInfo> arg1, ICommandContext arg2, IResult arg3) =>
-                {
-                    CommandCounter++;
-                    return Task.CompletedTask;
-                };
+            CommandService.CommandExecuted += CommandService_CommandExecuted;
 
             base.OnModuleBuilding(commandService, builder);
+        }
+
+        private Task CommandService_CommandExecuted(Optional<CommandInfo> arg1, ICommandContext arg2, IResult arg3)
+        {
+            if (!arg3.IsSuccess)
+                return Task.CompletedTask;
+
+            CoreService.CommandCounter++;
+            Console.WriteLine($"Command executed {arg1.Value?.Name}");
+            return Task.CompletedTask;
         }
 
         // Get Version
@@ -47,7 +53,7 @@ namespace DiscordBot.Modules
             embedBuilder.AddField("Application-Uptime", GetUptimeString());
             embedBuilder.AddField("Running on", Environment.OSVersion);
             embedBuilder.AddField("Build-Date", GetBuildDate(Assembly.GetExecutingAssembly()).ToLocalTime());
-            embedBuilder.AddField("Successful commands since startup", CommandCounter);
+            embedBuilder.AddField("Successful commands since startup", CoreService.CommandCounter);
 
             // Get active modules
             embedBuilder.AddField("Active Modules", GetActiveModulesString());
