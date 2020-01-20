@@ -50,6 +50,7 @@ namespace DiscordBot.Modules
 
             embedBuilder.AddField("Version", GetVersionString());
             embedBuilder.AddField("Source", "https://github.com/cm45/DiscordBot/");
+            embedBuilder.AddField("Trello-Board", "https://trello.com/b/EOplC2d6/");
             embedBuilder.AddField("Application-Uptime", GetUptimeString());
             embedBuilder.AddField("Running on", Environment.OSVersion);
             embedBuilder.AddField("Build-Date", GetBuildDate(Assembly.GetExecutingAssembly()).ToLocalTime());

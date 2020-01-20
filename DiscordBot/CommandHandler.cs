@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace DiscordBot
 {
+
+
     public class CommandHandler
     {
         public DiscordSocketClient Client { get; private set; }
