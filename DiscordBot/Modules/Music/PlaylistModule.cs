@@ -10,7 +10,7 @@ using Victoria;
 
 namespace DiscordBot.Modules.Music
 {
-    [Group("playlist"), Alias("pl"), Name("Playlist")]
+    [Group("playlist"), Alias("pl"), Name("Playlist"), Summary("Contains all playlist managing commands.")]
     public class PlaylistModule : ModuleBase<SocketCommandContext>
     {
         public MusicService MusicService { get; set; }
@@ -18,7 +18,7 @@ namespace DiscordBot.Modules.Music
 
         #region Play
 
-        [Command("play")]
+        [Command("play"), Summary("Plays a playlist by id.")]
         public async Task PlayPlaylistAsync(int id)
         {
             Console.WriteLine("Get playlist via ID");
@@ -40,7 +40,7 @@ namespace DiscordBot.Modules.Music
             await ReplyAsync(embed: CustomEmbedBuilder.BuildSuccessEmbed($"Successfully added the playlist '{playlist.Name}' with {playlist.Tracks?.Count()} tracks into the queue!"));
         }
 
-        [Command("play")]
+        [Command("play"), Summary("Plays a playlist by name.")]
         public async Task PlayPlaylistAsync(string name)
         {
             Console.WriteLine("Get playlist via name");
@@ -64,7 +64,7 @@ namespace DiscordBot.Modules.Music
         #endregion
 
         #region Query
-        [Command, Alias("all")]
+        [Command, Alias("all"), Summary("Lists all playlists.")]
         public async Task ListAllPlaylistsAsync()
         {
             var playlists = await PlaylistService.GetPlaylists();
@@ -81,7 +81,7 @@ namespace DiscordBot.Modules.Music
 
             await ReplyAsync(embed: CustomEmbedBuilder.BuildInfoEmbed($"Found {playlists.Count()} playlists!", message));
         }
-        [Command]
+        [Command, Summary("Gets a single playlist by id.")]
         public async Task GetPlaylist(int id)
         {
             var playlist = await PlaylistService.GetPlaylist(id);
@@ -97,7 +97,7 @@ namespace DiscordBot.Modules.Music
 
             await ReplyAsync(embed: CustomEmbedBuilder.BuildInfoEmbed($"Found playlist '{playlist.Name}'!", message.Trim('\n')));
         }
-        [Command]
+        [Command, Summary("Gets a single playlist by name.")]
         public async Task GetPlaylist(string name)
         {
             var playlist = await PlaylistService.GetPlaylist(name);
@@ -111,7 +111,7 @@ namespace DiscordBot.Modules.Music
         #endregion
 
         #region Remove
-        [Command("destroy"), Alias("d")]
+        [Command("destroy"), Alias("d"), Summary("Destroys a single playlist by id.")]
         public async Task DestroyPlaylistAsync(int id)
         {
             if (await PlaylistService.RemovePlaylist(id))
@@ -120,7 +120,7 @@ namespace DiscordBot.Modules.Music
                 await ReplyAsync(embed: CustomEmbedBuilder.BuildErrorEmbed($"Failed to remove playlist with id {id}!"));
         }
 
-        [Command("destroy"), Alias("d")]
+        [Command("destroy"), Alias("d"), Summary("Destroys a single palylist by name.")]
         public async Task DestroyPlaylistAsync(string name)
         {
             if (await PlaylistService.RemovePlaylist(name))
@@ -133,7 +133,7 @@ namespace DiscordBot.Modules.Music
 
         #region Add Track/s
 
-        [Command("addtrack")]
+        [Command("addtrack"), Summary("Add tracks based by URL/Query to a playlist based on its name.")]
         public async Task AddTracksToPlaylistAsync(string playlistName, [Remainder] string query)
         {
             var playlist = await PlaylistService.GetPlaylist(playlistName);
@@ -142,7 +142,7 @@ namespace DiscordBot.Modules.Music
             await playlist.AddTracks(tracks);
         }
 
-        [Command("addtrack")]
+        [Command("addtrack"), Summary("Add tracks based by URL/Query to a playlist based on its id.")]
         public async Task AddTracksToPlaylistAsync(int playlistId, [Remainder] string query)
         {
             var playlist = await PlaylistService.GetPlaylist(playlistId);
@@ -153,16 +153,16 @@ namespace DiscordBot.Modules.Music
 
         #endregion
 
-        [Command("skip"), Alias("next", "n")] public async Task SkipAsync() => await ReplyAsync(embed: await MusicService.SkipAsync());
+       
 
-        [Command("create")]
+        [Command("create"), Summary("Creates a playlist with a specific name.")]
         public async Task CreatePlaylistAsync([Remainder] string name)
         {
             var playlist = await PlaylistService.CreatePlaylist(name);
             await ReplyAsync($"Created playlist called '{playlist.Name}'!");
         }
 
-        [Command("save")]
+        [Command("save"), Summary("Saves current queue (and current track) as a playlist with a specific name.")]
         public async Task SaveQueueAsPlaylistAsync([Remainder] string playlistName)
         {
             if (MusicService.Player == null)

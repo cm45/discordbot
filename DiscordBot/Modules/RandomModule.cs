@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace DiscordBot.Modules
 {
-    [Name("Random")]
+    [Name("Random"), Summary("Contains several random generating commands.")]
     public class RandomModule : ModuleBase<SocketCommandContext>
     {
         public Random Rng { get; set; }
 
-        [Command("dice"), Alias("roll")]
+        [Command("dice"), Alias("roll"), Summary("Rolls a dice."), Remarks("Rolls a dice between 1 and 6 (customizable).")]
         public async Task RollDiceAsync(int eyes = 6)
         {
             var number = Rng.Next(1, eyes + 1);
@@ -26,14 +26,14 @@ namespace DiscordBot.Modules
         }
 
         #region Random Number Generator
-        [Command("rng"), Alias("random")]
+        [Command("rng"), Alias("random"), Summary("Generates a random number between a min and max number.")]
         public async Task RandomNumberAsync(int min, int max)
         {
             var number = Rng.Next(min, max + 1);
             await ReplyAsync(embed: CustomEmbedBuilder.BuildSuccessEmbed($"Random Number Generator ({min} - {max})", $"Your generated random number between {min} & {max} is {number}!"));
         }
 
-        [Command("rng"), Alias("random")]
+        [Command("rng"), Alias("random"), Summary("Generates a random number between 0 and a max number.")]
         public async Task RandomNumberAsync(int max)
         {
             var number = Rng.Next(max + 1);
@@ -41,8 +41,8 @@ namespace DiscordBot.Modules
         }
         #endregion
 
-        [Command("randomperson")]
-        public async Task SelectRandomPersonAsync([Remainder] IVoiceChannel voiceChannel = null)
+        [Command("randomuser"), Summary("Selects a random user of your current voicechannel or a specified voicechannel.")]
+        public async Task SelectUserPersonAsync([Remainder] IVoiceChannel voiceChannel = null)
         {
             voiceChannel ??= (Context.User as IGuildUser).VoiceChannel;
 

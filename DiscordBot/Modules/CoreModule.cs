@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace DiscordBot.Modules
 {
-    [Name("Core")]
+    [Name("Core"), Summary("Contains core functionality and basic bot information.")]
     public class CoreModule : ModuleBase<SocketCommandContext>
     {
         public CommandService CommandService { get; set; }
@@ -39,7 +39,7 @@ namespace DiscordBot.Modules
         }
 
         // Get Version
-        [Command("info")]
+        [Command("info"), Summary("Get info about the bot.")]
         public async Task GetInfo()
         {
             var embedBuilder = new EmbedBuilder()

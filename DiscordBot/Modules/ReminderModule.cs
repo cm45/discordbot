@@ -11,12 +11,12 @@ using static DiscordBot.Services.ReminderService;
 
 namespace DiscordBot.Modules
 {
-    [Name("Reminder")]
+    [Name("Reminder"), Summary("Contains functionality to create reminders.")]
     public class ReminderModule : ModuleBase<SocketCommandContext>
     {
         public ReminderService ReminderService { get; set; }
 
-        [Command("remindme")]
+        [Command("remindme"), Summary("The bot sends you a reminder at a specific date/time.")]
         public async Task RemindMeAsync(DateTime time, [Remainder] string message)
         {
             if (time == null)
@@ -32,7 +32,7 @@ namespace DiscordBot.Modules
             await ReplyAsync("Added reminder!");
         }
 
-        [Command("remindmein")]
+        [Command("remindmein"), Summary("The bot reminds you in a specific time span.")]
         public async Task RemindMeInAsync(TimeSpan time, [Remainder] string message)
         {
             if (time == null)
@@ -46,7 +46,7 @@ namespace DiscordBot.Modules
             await ReplyAsync("Added reminder!");
         }
 
-        [Command("reminder")]
+        [Command("reminder"), Summary("Gets a list of all your reminders and all public reminders.")]
         public async Task GetReminderAsync()
         {
             var reminders = ReminderService.Reminders.Where(r => r.Creator == Context.User || r.IsPublic == true);

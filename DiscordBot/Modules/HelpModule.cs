@@ -106,7 +106,7 @@ namespace DiscordBot.Modules
 
             // Arguments
             if (command.Parameters.Count > 0)
-                embedBuilder.AddField("Parameters", string.Join(", ", GetParameterStrings(command)));
+                embedBuilder.AddField("Parameters", string.Join(", ", command.Parameters.Select(p => $"`{p.Name}`: {p.Summary}")));
 
             return embedBuilder.Build();
         }
@@ -135,7 +135,12 @@ namespace DiscordBot.Modules
         private IEnumerable<string> GetUsageStrings(CommandInfo command)
         {
             var output = new List<string>();
-            output.Add($"`{GetCommandPrefixString(command)}` `{command.Name}` {string.Join(' ', GetParameterStrings(command).Select(p => $"`{p}`"))}");
+
+            var commandPath = $"`{GetCommandPrefixString(command)}`  ";
+            var parameterList = string.Join(' ', GetParameterStrings(command).Select(p => $"`<{p}>`"));
+
+            output.Add(commandPath + parameterList);
+
             return output;
         }
 
@@ -155,11 +160,7 @@ namespace DiscordBot.Modules
             string output = string.Join(' ', moduleStack.Select(m => m.Name));
             #endregion
 
-            output += $" {command.Name} ";
-
-            if (command.Parameters.Count > 0)
-                output += string.Join(' ', GetParameterStrings(command));
-
+            output += $" {command.Name}";
             return output;
         }
 
