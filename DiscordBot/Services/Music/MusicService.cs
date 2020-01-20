@@ -24,6 +24,7 @@ namespace DiscordBot.Services.Music
         public LavaPlayer Player { get; private set; }
         public SettingsService SettingsService { get; set; }
         public QueueService QueueService { get; set; }
+        public ActivityService ActivityService { get; set; }
 
         public MusicService(DiscordSocketClient client, LavaConfig lavaConfig, LavaNode lavaNode)
         {
@@ -69,9 +70,9 @@ namespace DiscordBot.Services.Music
         private async Task LavaNode_OnPlayerUpdated(Victoria.EventArgs.PlayerUpdateEventArgs arg)
         {
             if (arg.Player.PlayerState == PlayerState.Playing)
-                await Client.SetGameAsync(Player.Track.Title, Player.Track.Url);
+                await ActivityService.SetActivityAsync(arg.Track);
             else
-                await Client.SetActivityAsync(null);
+                await ActivityService.ClearActivityAsync();
         }
         #endregion
 
@@ -216,7 +217,7 @@ namespace DiscordBot.Services.Music
                 return NoPlayerEmbed;
 
             await Player.StopAsync();
-            await Client.SetActivityAsync(null);
+            await ActivityService.ClearActivityAsync();
 
             return CustomEmbedBuilder.BuildSuccessEmbed($"Stopped playback of '{Player.Track.Title}'!");
         }
