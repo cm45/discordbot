@@ -54,12 +54,14 @@ namespace DiscordBot.Modules
                             break;
 
                         command = GetCommand(arg, module);
+                        module = null;
                         break;
                     }
                     else
                         module = moduleInfo;
                 }
 
+                command ??= CommandService.Commands.Where(c => c.Name.ToLower() == path.ToLower()).FirstOrDefault();
 
                 if (command != null)
                     await ReplyAsync(embed: BuildCommandHelp(command));

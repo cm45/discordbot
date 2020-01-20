@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace DiscordBot.Modules
 {
-    [Name("Utility")]
+    [Name("Utility"), Alias("utils", "u"), Summary("Provides some utilities like clearing textchannels.")]
     public class UtilityModule : ModuleBase<SocketCommandContext>
     {
         #region Purge
